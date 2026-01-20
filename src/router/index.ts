@@ -11,6 +11,11 @@ const router = createRouter({
             meta: { template: 'PostLayout' },
             component: () => import('../views/PostsListView.vue')
         },
+        {
+            path: '/plants',
+            name: 'plants',
+            component: () => import('../views/PlantsView.vue')
+        },
         ...posts.map(({ title, date, slug, fileName }) => ({
             path: `/${slug}`,
             name: slug,

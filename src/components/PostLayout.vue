@@ -1,7 +1,5 @@
 <template>
-    <main
-        class="divide-y dark:divide-gray-700 py-10 px-5 md:px-28 lg:py-36 h-full lg:overflow-y-auto"
-    >
+    <main class="divide-y dark:divide-gray-700 main-padding h-full lg:overflow-y-auto">
         <IntroSection />
         <section>
             <h1>What I'm learning</h1>

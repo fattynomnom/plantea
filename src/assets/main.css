@@ -4,6 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* #region inter font */
 @font-face {
     font-family: 'Inter';
     font-weight: 100;
@@ -13,13 +14,13 @@
 @font-face {
     font-family: 'Inter';
     font-weight: 200;
-    src: url('../assets/fonts/Inter/static/Inter-Light.ttf');
+    src: url('../assets/fonts/Inter/static/Inter-ExtraLight.ttf');
 }
 
 @font-face {
     font-family: 'Inter';
     font-weight: 300;
-    src: url('../assets/fonts/Inter/static/Inter-ExtraLight.ttf');
+    src: url('../assets/fonts/Inter/static/Inter-Light.ttf');
 }
 
 @font-face {
@@ -57,8 +58,62 @@
     font-weight: 900;
     src: url('../assets/fonts/Inter/static/Inter-Black.ttf');
 }
+/* #endregion */
 
+/* #region nunito font */
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 200;
+    src: url('../assets/fonts/Nunito/static/Nunito-ExtraLight.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 300;
+    src: url('../assets/fonts/Nunito/static/Nunito-Light.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 400;
+    src: url('../assets/fonts/Nunito/static/Nunito-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 500;
+    src: url('../assets/fonts/Nunito/static/Nunito-Medium.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 600;
+    src: url('../assets/fonts/Nunito/static/Nunito-SemiBold.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 700;
+    src: url('../assets/fonts/Nunito/static/Nunito-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 800;
+    src: url('../assets/fonts/Nunito/static/Nunito-ExtraBold.ttf');
+}
+
+@font-face {
+    font-family: 'Nunito';
+    font-weight: 900;
+    src: url('../assets/fonts/Nunito/static/Nunito-Black.ttf');
+}
+/* #endregion */
+
+/* #region base */
 :root {
+    color-scheme: light dark;
+
     scrollbar-color: var(--color-gray-300) transparent;
     scrollbar-width: thin;
 
@@ -68,6 +123,13 @@
     --toggle-width: 3.25rem;
     --toggle-height: 1.5rem;
     --toggle-border: 0px;
+
+    --font-accent: 'Nunito', sans-serif;
+
+    --p-stepper-separator-background: var(--color-gray-700) !important;
+    --p-fileupload-border-color: var(--color-gray-700) !important;
+    --p-inputtext-border-color: var(--color-gray-700) !important;
+    --p-tooltip-background: var(--color-gray-950) !important;
 }
 
 ::-webkit-scrollbar {
@@ -92,18 +154,25 @@ div#app {
     height: 100%;
     font-family: 'Inter', sans-serif;
     overscroll-behavior: none;
-    @apply text-gray-500 dark:text-gray-300;
+    @apply bg-white;
+}
+
+body > div {
+    @apply !text-gray-500 dark:!text-gray-300;
 }
 
 h1 {
+    font-family: var(--font-accent);
     @apply font-semibold text-2xl pb-5;
 }
 
 h2 {
+    font-family: var(--font-accent);
     @apply font-semibold text-xl;
 }
 
 h5 {
+    font-family: var(--font-accent);
     @apply font-semibold;
 }
 
@@ -115,6 +184,16 @@ a {
     @apply text-indigo-500;
 }
 
+label {
+    @apply text-sm text-gray-200;
+}
+
+.main-padding {
+    @apply py-10 px-5 md:px-28 lg:py-36;
+}
+/* #endregion */
+
+/* #region markdown */
 .markdown-body {
     @apply space-y-5;
 }
@@ -140,5 +219,142 @@ a {
 }
 
 .markdown-body h1 {
-    @apply font-semibold text-base pb-0;
+    @apply font-bold text-base pb-0;
 }
+/* #endregion */
+
+/* #region Vue transitions */
+.slide-right-enter-from,
+.slide-left-leave-to {
+    translate: -100%;
+    opacity: 0;
+}
+
+.slide-right-leave-to,
+.slide-left-enter-from {
+    translate: 100%;
+    opacity: 0;
+}
+
+.slide-right-enter-active,
+.slide-left-enter-active {
+    @apply transition-all ease-in duration-200 delay-200;
+}
+
+.slide-right-leave-active,
+.slide-left-leave-active {
+    @apply transition-all ease-in duration-200;
+}
+/* #endregion */
+
+/* #region PrimeVue toast */
+div[data-pc-name='toast'] div[data-pc-section='message'] {
+    @apply rounded-2xl;
+}
+
+div[data-pc-name='toast'] span[data-pc-section='summary'] {
+    font-family: var(--font-accent);
+    line-height: 20px;
+}
+
+div[data-pc-name='toast'] div[data-pc-section='detail'] {
+    @apply font-normal text-gray-700 dark:text-gray-300;
+}
+
+/* sm */
+@media (max-width: 640px) {
+    div[data-pc-name='toast'] {
+        @apply w-full p-5 top-0 left-0 right-0 !important;
+    }
+}
+/* #endregion */
+
+/* #region PrimeVue drawer */
+div[data-pc-name='drawer'] {
+    @apply !w-2/5 !bg-gray-100 dark:!bg-gray-900 !border-0 !rounded-l-2xl text-inherit;
+}
+
+div[data-pc-name='drawer'] div[data-pc-section='header'] {
+    @apply !px-10;
+}
+
+div[data-pc-name='drawer'] div[data-pc-section='title'] {
+    font-family: var(--font-accent);
+}
+
+div[data-pc-name='drawer'] div[data-pc-section='content'] {
+    @apply !px-10;
+}
+/* #endregion */
+
+/* #region PrimeVue stepper */
+div[data-pc-name='stepper'] div[data-pc-name='step'] {
+    @apply !px-0;
+}
+
+div[data-pc-name='stepper'] div[data-pc-name='step']:not(:first-child) {
+    @apply !pl-4;
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='number'][data-p*='active'] {
+    @apply bg-indigo-500 border-0;
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='number'] {
+    @apply bg-gray-950 border-0 text-sm min-w-7 h-7;
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='separator'][data-p*='completed'] {
+    @apply bg-indigo-500;
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='separator'] {
+    @apply h-[1px];
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='title'][data-p*='active'] {
+    @apply text-indigo-500;
+}
+
+div[data-pc-name='stepper'] span[data-pc-section='title'] {
+    @apply font-normal text-sm;
+}
+
+div[data-pc-name='stepper'] div[data-pc-name='steppanel'] {
+    @apply bg-transparent;
+}
+/* #endregion */
+
+/* #region PrimeVue FileUpload */
+div[data-pc-name='fileupload'] {
+    @apply bg-transparent rounded-2xl;
+}
+
+div[data-pc-name='fileupload'] div[data-pc-section='header'] {
+    @apply bg-transparent border-0 pt-16 pb-3;
+}
+
+div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='header'] {
+    @apply !pt-3 !pb-0;
+}
+
+div[data-pc-name='fileupload'] div[data-pc-section='content'] {
+    @apply pb-16 pt-0;
+}
+
+div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='content'] {
+    @apply !pb-3 !px-3;
+}
+/* #endregion */
+
+/* #region PrimeVue InputText */
+input[data-pc-name='inputtext'] {
+    @apply rounded-2xl bg-transparent !shadow-none hover:!border-indigo-500 text-sm font-normal text-gray-300 px-5 py-3;
+}
+/* #endregion */
+
+/* #region PrimeVue Tooltip */
+.p-tooltip-text {
+    @apply rounded-xl text-xs bg-gray-950 !important;
+}
+/* #endregion */

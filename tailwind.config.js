@@ -1,3 +1,5 @@
+import PrimeUI from 'tailwindcss-primeui'
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     darkMode: 'selector',
@@ -25,6 +27,7 @@ module.exports = {
             addBase({
                 ':root': extractColorVars(theme('colors'))
             })
-        }
+        },
+        PrimeUI
     ]
 }

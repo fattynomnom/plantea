@@ -18,6 +18,8 @@ coverage
 
 /src/docs/generated.json
 
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

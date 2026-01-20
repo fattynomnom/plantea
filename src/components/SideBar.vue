@@ -1,6 +1,6 @@
 <template>
     <nav
-        class="bg-gray-100 dark:bg-gray-900 p-10 md:px-28 md:py-20 lg:p-20 w-full lg:w-2/6 h-fit lg:h-full flex flex-col justify-center space-y-5 items-center lg:items-start"
+        class="bg-gray-100 dark:bg-gray-950 p-10 md:px-28 md:py-20 lg:p-20 w-full lg:w-2/6 h-fit lg:h-full flex flex-col justify-center space-y-5 items-center lg:items-start"
     >
         <img
             alt="Profile picture"
@@ -25,7 +25,12 @@
                 <LinkedinIcon class="w-5 h-5 text-indigo-500" />
             </a>
         </div>
-        <Toggle v-model="theme" true-value="light" false-value="dark">
+        <Toggle
+            :modelValue="isDark ? 'dark' : 'light'"
+            @update:modelValue="toggleDark()"
+            true-value="light"
+            false-value="dark"
+        >
             <template v-slot:label="{ checked, classList }">
                 <SunIcon v-if="checked" :class="`${classList.label} h-4`" />
                 <MoonIcon v-else :class="`${classList.label} h-4 text-gray-500`" />
@@ -39,11 +44,8 @@ import { SunIcon, MoonIcon } from '@heroicons/vue/24/outline'
 import GithubIcon from '@/assets/icons/github.svg?component'
 import LinkedinIcon from '@/assets/icons/linkedin.svg?component'
 import Toggle from '@vueform/toggle'
-import { useStorage } from '@vueuse/core'
+import { useDark, useToggle } from '@vueuse/core'
 
-const theme = useStorage(
-    'theme',
-    window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-    localStorage
-)
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
 </script>
