@@ -5,8 +5,7 @@
         } transition-colors`"
     >
         <div class="flex-1 lg:overflow-y-hidden">
-            <PostLayout v-if="route.meta.template === 'PostLayout'" />
-            <RouterView v-else />
+            <RouterView />
         </div>
 
         <SideBar />
@@ -17,13 +16,10 @@
 
 <script setup lang="ts">
 import { useDark } from '@vueuse/core'
-import { RouterView, useRoute } from 'vue-router'
-import PostLayout from '@/components/PostLayout.vue'
+import { RouterView } from 'vue-router'
 import SideBar from '@/components/SideBar.vue'
 import Toast from 'primevue/toast'
 import { useBreakpoints } from './composables/useBreakpoints'
-
-const route = useRoute()
 
 const isDark = useDark()
 

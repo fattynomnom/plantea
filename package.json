@@ -1,5 +1,5 @@
 {
-    "name": "madeleine-portfolio",
+    "name": "plantea-vuejs",
     "version": "0.0.0",
     "private": true,
     "scripts": {
@@ -10,8 +10,7 @@
         "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore --ignore-pattern 'dist/**/*'",
         "format": "prettier --write src/",
-        "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
-        "generate-posts": "node scripts/ExtractFrontmatter.ts"
+        "pretty": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\""
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
