@@ -2,7 +2,7 @@ import { firebaseStorage } from '@/modules/firebase'
 import { getDownloadURL, ref as strRef, uploadBytesResumable } from 'firebase/storage'
 import { ref } from 'vue'
 
-export const useFirebaseUser = (file: File | Blob) => {
+export const useFileUpload = (file: File | Blob) => {
     const progressPercent = ref<number>(0)
     const uploadedUrl = ref<string>()
 

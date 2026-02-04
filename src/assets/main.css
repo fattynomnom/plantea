@@ -241,7 +241,11 @@ div[data-pc-name='toast'] div[data-pc-section='detail'] {
 
 /* #region PrimeVue drawer */
 div[data-pc-name='drawer'] {
-    @apply !w-2/5 !bg-gray-100 dark:!bg-gray-900 !border-0 !rounded-l-2xl text-inherit;
+    @apply !bg-gray-100 dark:!bg-gray-900 !border-0 !rounded-l-2xl text-inherit;
+}
+
+.p-drawer-bottom .p-drawer {
+    @apply h-fit !important;
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='header'] {

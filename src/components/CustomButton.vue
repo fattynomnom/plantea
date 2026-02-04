@@ -1,12 +1,13 @@
 <template>
-    <button type="button" :data-variant="variant" @click="onClick">
+    <button :type="type" :data-variant="variant" @click="onClick">
         <slot />
     </button>
 </template>
 
 <script setup lang="ts">
-const { variant = 'primary' } = defineProps<{
+const { variant = 'primary', type = 'button' } = defineProps<{
     variant?: 'primary' | 'secondary' | 'link' | 'accent'
+    type?: 'button' | 'submit'
 }>()
 
 // The explicitly defined emits, onClick function & defineExpose
