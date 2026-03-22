@@ -27,10 +27,11 @@
                         <span class="text-xs"> {{}} day(s) since last water </span>
                     </div>
                     <CustomButton
-                        v-if="!plant.dateTimes.includes(todayTime)"
-                        @click="onWaterClick(plant)"
-                        >Watered</CustomButton
+                        v-if="!plant.datetimes.includes(todayTime)"
+                        @click="markPlantWatered(plant)"
                     >
+                        Watered
+                    </CustomButton>
                 </li>
             </ul>
 
@@ -59,12 +60,8 @@ import CustomButton from '@/components/CustomButton.vue'
 import SignInDialog from '@/components/SignInDialog.vue'
 import { ref, watch } from 'vue'
 import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
-import { fetchPlants, updatePlant, type Plant as PlantBase } from '@/models/plant'
+import { fetchPlants, markPlantWatered, type Plant } from '@/models/plant'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
-
-interface Plant extends PlantBase {
-    dateTimes: number[]
-}
 
 const { user } = useFirebaseUser()
 
@@ -77,16 +74,8 @@ today.setHours(0, 0, 0, 0)
 const todayTime = today.getTime()
 
 const fetchData = async () => {
-    const data = await fetchPlants()
-    plants.value = data.map(({ dates, ...plant }) => ({
-        ...plant,
-        dates,
-        dateTimes: dates.map(date => date.getTime())
-    }))
+    plants.value = await fetchPlants()
 }
-
-const onWaterClick = async (plant: Plant) =>
-    updatePlant({ ...plant, dates: [...plant.dates, new Date()] })
 
 watch(user, value => {
     if (value) {

@@ -9,7 +9,7 @@ import {
 export interface Plant {
     id: string
     name: string
-    dates: Date[]
+    datetimes: number[]
 }
 
 interface DbPlant {
@@ -17,6 +17,7 @@ interface DbPlant {
     dates: Timestamp[]
 }
 
+// #region firebase functions
 const PLANT_PATHS = ['plants']
 
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
@@ -25,7 +26,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         console.log('toFirestore', plant)
         return {
             name: plant.name as string,
-            dates: (plant.dates as Date[]).map(date => Timestamp.fromDate(date))
+            dates: (plant.datetimes as number[]).map(datetime => Timestamp.fromMillis(datetime))
         }
     },
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
@@ -35,7 +36,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         return {
             id: snapshot.id,
             name: data.name,
-            dates: data.dates.map(({ seconds }) => new Date(seconds * 1000))
+            datetimes: data.dates.map(({ seconds }) => seconds * 1000)
         }
     }
 }
@@ -49,4 +50,19 @@ export const fetchPlants = () => fetchCollection(plantCollectionConfig)
 
 export const createPlant = (data: Omit<Plant, 'id'>) => createDoc(plantCollectionConfig, data)
 
-export const updatePlant = (data: Plant) => updateDoc(plantCollectionConfig, data)
+const updatePlant = (data: Plant) => updateDoc(plantCollectionConfig, data)
+// #endregion
+
+// #region logical functions
+export const markPlantWatered = async (plant: Plant) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayDateTime = today.getTime()
+
+    if (plant.datetimes.includes(todayDateTime)) {
+        return
+    }
+
+    await updatePlant({ ...plant, datetimes: [...plant.datetimes, todayDateTime] })
+}
+// #endregion

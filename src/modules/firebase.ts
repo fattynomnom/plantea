@@ -109,6 +109,8 @@ export const updateDoc = async <
     { paths, converter }: CollectionConfig<AppModelType, DbModelType>,
     data: AppModelType
 ) => {
+    console.log('Update doc:', data)
+
     const basePath = getBasePath()
     if (basePath) {
         await setDoc(doc(...basePath, ...paths, data.id).withConverter(converter), data)
