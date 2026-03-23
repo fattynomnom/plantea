@@ -2,7 +2,7 @@
     <div class="flex flex-col h-full overflow-y-auto transition-colors p-7">
         <div class="flex justify-between items-center">
             <Logo class="h-10 w-10" />
-            <Bars3Icon class="h-5 w-5" />
+            <Bars3Icon class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
         <div class="flex-1 lg:overflow-y-hidden">
@@ -11,6 +11,15 @@
 
         <Toast />
     </div>
+
+    <CustomDrawer v-model:visible="isMenuOpen">
+        <ul>
+            <li class="flex space-x-3 items-center" @click="signOut">
+                <ArrowLeftStartOnRectangleIcon class="w-5 h-5" />
+                <span>Sign out</span>
+            </li>
+        </ul>
+    </CustomDrawer>
 </template>
 
 <script setup lang="ts">
@@ -20,12 +29,16 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { firebaseAuth, signOut } from './modules/firebase'
 import { useToast } from 'primevue'
 import Logo from '@/assets/logo.svg?component'
-import { Bars3Icon } from '@heroicons/vue/24/outline'
+import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
+import CustomDrawer from './components/CustomDrawer.vue'
+import { ref } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const toast = useToast()
+
+const isMenuOpen = ref(false)
 
 onAuthStateChanged(firebaseAuth, fbUser => {
     const goToLogin = () => {
