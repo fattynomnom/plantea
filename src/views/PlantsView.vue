@@ -46,6 +46,11 @@
                 <PlusCircleIcon />
                 <span>Add plant setup</span>
             </CustomButton>
+
+            <CustomButton @click="signOut">
+                <PlusCircleIcon />
+                <span>Sign out</span>
+            </CustomButton>
         </div>
 
         <SignInDialog />
@@ -62,6 +67,7 @@ import { ref, watch } from 'vue'
 import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
 import { fetchPlants, markPlantWatered, type Plant } from '@/models/plant'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
+import { signOut } from '@/modules/firebase'
 
 const { user } = useFirebaseUser()
 

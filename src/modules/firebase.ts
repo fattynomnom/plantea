@@ -1,5 +1,10 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut as signOutFirebase
+} from 'firebase/auth'
 import { getStorage } from 'firebase/storage'
 import {
     getFirestore,
@@ -33,6 +38,8 @@ const firebaseProvider = new GoogleAuthProvider()
 export const authWithPopup = () => signInWithPopup(firebaseAuth, firebaseProvider)
 
 export const getUserId = () => firebaseAuth.currentUser?.uid
+
+export const signOut = () => signOutFirebase(firebaseAuth)
 // #endregion
 
 // #region storage

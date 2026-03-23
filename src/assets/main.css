@@ -125,6 +125,8 @@
     --toggle-border: 0px;
 
     --font-accent: 'Nunito', sans-serif;
+    --bg-color: var(--color-orange-100);
+    --color-primary: var(--color-green-800);
 
     --p-stepper-separator-background: var(--color-gray-700) !important;
     --p-fileupload-border-color: var(--color-gray-700) !important;
@@ -154,7 +156,7 @@ div#app {
     height: 100%;
     font-family: 'Inter', sans-serif;
     overscroll-behavior: none;
-    @apply bg-white;
+    background-color: var(--bg-color);
 }
 
 body > div {
@@ -191,6 +193,10 @@ label {
 .main-padding {
     @apply py-10 px-5 md:px-28 lg:py-36;
 }
+
+.bg-color-primary {
+    background-color: var(--bg-color);
+}
 /* #endregion */
 
 /* #region Vue transitions */
@@ -218,8 +224,12 @@ label {
 /* #endregion */
 
 /* #region PrimeVue toast */
-div[data-pc-name='toast'] div[data-pc-section='message'] {
-    @apply rounded-2xl;
+.p-toast {
+    @apply left-5 w-auto !important;
+}
+
+.p-toast-message {
+    @apply rounded-2xl bg-red-400/90 text-red-800 !important;
 }
 
 div[data-pc-name='toast'] span[data-pc-section='summary'] {
@@ -227,15 +237,8 @@ div[data-pc-name='toast'] span[data-pc-section='summary'] {
     line-height: 20px;
 }
 
-div[data-pc-name='toast'] div[data-pc-section='detail'] {
-    @apply font-normal text-gray-700 dark:text-gray-300;
-}
-
-/* sm */
-@media (max-width: 640px) {
-    div[data-pc-name='toast'] {
-        @apply w-full p-5 top-0 left-0 right-0 !important;
-    }
+.p-toast-detail {
+    @apply font-normal text-gray-900 !important;
 }
 /* #endregion */
 

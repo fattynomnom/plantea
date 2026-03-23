@@ -1,12 +1,11 @@
 <template>
-    <button :type="type" :data-variant="variant" @click="onClick">
+    <button :type="type" @click="onClick">
         <slot />
     </button>
 </template>
 
 <script setup lang="ts">
-const { variant = 'primary', type = 'button' } = defineProps<{
-    variant?: 'primary' | 'secondary' | 'link' | 'accent'
+const { type = 'button' } = defineProps<{
     type?: 'button' | 'submit'
 }>()
 
@@ -29,21 +28,9 @@ defineExpose({
 
 <style scoped>
 button {
-    @apply text-sm transition-colors flex justify-center;
-}
-
-button[data-variant='primary'] {
     font-family: var(--font-accent);
-    @apply font-semibold bg-gray-700 dark:bg-gray-800 text-white p-3 rounded-2xl uppercase hover:bg-gray-800 hover:dark:bg-gray-700 space-x-2;
-}
-
-button[data-variant='accent'] {
-    font-family: var(--font-accent);
-    @apply font-semibold bg-gray-700 dark:bg-indigo-500 text-white p-3 rounded-2xl uppercase hover:bg-gray-800 hover:dark:bg-gray-700 space-x-2;
-}
-
-button[data-variant='link'] {
-    @apply text-indigo-500 space-x-2 hover:text-indigo-400;
+    background-color: var(--color-primary);
+    @apply text-sm text-white transition-colors flex justify-center font-semibold p-3 rounded-2xl uppercase space-x-2;
 }
 
 :slotted(svg) {
