@@ -7,19 +7,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-dist
 node_modules
 .DS_Store
+dist
 dist-ssr
 coverage
 *.local
+.env
+.eslintcache
 
+# Cypress
 /cypress/videos/
 /cypress/screenshots/
 
-/src/docs/generated.json
-
-.env
+# Vitest
+__screenshots__/
 
 # Editor directories and files
 .vscode/*
@@ -30,3 +32,9 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Vite
+*.timestamp-*-*.mjs
+
+# Firebase
+.firebase

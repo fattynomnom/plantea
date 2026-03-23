@@ -6,10 +6,13 @@
         },
         {
             "path": "./tsconfig.app.json"
+        },
+        {
+            "path": "./tsconfig.vitest.json"
         }
     ],
     "compilerOptions": {
         "skipLibCheck": true,
-        "types": ["vite-svg-loader", "vite/client"]
+        "types": ["vite-svg-loader"]
     }
 }

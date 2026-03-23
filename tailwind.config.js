@@ -1,5 +1,3 @@
-import PrimeUI from 'tailwindcss-primeui'
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     darkMode: 'selector',
@@ -11,7 +9,7 @@ module.exports = {
         // extracts tailwind colors as css variables
         // snippet from https://gist.github.com/Merott/d2a19b32db07565e94f10d13d11a8574
         ({ addBase, theme }) => {
-            function extractColorVars(colorObj, colorGroup = '') {
+            const extractColorVars = (colorObj, colorGroup = '') => {
                 return Object.keys(colorObj).reduce((vars, colorKey) => {
                     const value = colorObj[colorKey]
 
@@ -27,7 +25,6 @@ module.exports = {
             addBase({
                 ':root': extractColorVars(theme('colors'))
             })
-        },
-        PrimeUI
+        }
     ]
 }
