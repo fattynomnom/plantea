@@ -125,6 +125,7 @@
     --toggle-border: 0px;
 
     --font-accent: 'Nunito', sans-serif;
+    --font-color: var(--color-gray-700);
     --bg-color: var(--color-orange-100);
     --color-primary: var(--color-green-800);
 
@@ -160,7 +161,7 @@ div#app {
 }
 
 body > div {
-    @apply !text-gray-500 dark:!text-gray-300;
+    color: var(--font-color);
 }
 
 h1 {
@@ -229,7 +230,7 @@ label {
 }
 
 .p-toast-message {
-    @apply rounded-2xl bg-red-400/90 text-red-800 !important;
+    @apply rounded-2xl bg-red-300 text-red-900 !important;
 }
 
 div[data-pc-name='toast'] span[data-pc-section='summary'] {

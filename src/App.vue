@@ -1,5 +1,10 @@
 <template>
-    <div class="flex flex-col-reverse lg:flex-row h-full overflow-y-auto transition-colors">
+    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7">
+        <div class="flex justify-between items-center">
+            <Logo class="h-10 w-10" />
+            <Bars3Icon class="h-5 w-5" />
+        </div>
+
         <div class="flex-1 lg:overflow-y-hidden">
             <RouterView />
         </div>
@@ -14,6 +19,8 @@ import Toast from 'primevue/toast'
 import { onAuthStateChanged } from 'firebase/auth'
 import { firebaseAuth, signOut } from './modules/firebase'
 import { useToast } from 'primevue'
+import Logo from '@/assets/logo.svg?component'
+import { Bars3Icon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
