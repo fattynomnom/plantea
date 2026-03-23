@@ -21,17 +21,12 @@ interface DbPlant {
 const PLANT_PATHS = ['plants']
 
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
-    // TODO: test this converter with addPlant
-    toFirestore: (plant: WithFieldValue<Omit<Plant, 'id'>>): DbPlant => {
-        console.log('toFirestore', plant)
-        return {
-            name: plant.name as string,
-            dates: (plant.datetimes as number[]).map(datetime => Timestamp.fromMillis(datetime))
-        }
-    },
+    toFirestore: (plant: WithFieldValue<Omit<Plant, 'id'>>): DbPlant => ({
+        name: plant.name as string,
+        dates: (plant.datetimes as number[]).map(datetime => Timestamp.fromMillis(datetime))
+    }),
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
         const data = snapshot.data()
-        console.log('fromFirestore', data)
 
         return {
             id: snapshot.id,

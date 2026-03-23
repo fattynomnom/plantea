@@ -1,15 +1,13 @@
 <template>
-    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7">
+    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
         <div class="flex justify-between items-center">
             <Logo class="h-10 w-10" />
             <Bars3Icon class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
-        <div class="flex-1 lg:overflow-y-hidden">
+        <div class="flex-1">
             <RouterView />
         </div>
-
-        <Toast />
     </div>
 
     <CustomDrawer v-model:visible="isMenuOpen">
@@ -20,6 +18,8 @@
             </li>
         </ul>
     </CustomDrawer>
+
+    <Toast />
 </template>
 
 <script setup lang="ts">
