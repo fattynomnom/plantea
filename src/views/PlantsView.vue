@@ -67,25 +67,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { fetchPlants, markPlantWatered, type Plant } from '@/models/plant'
+import { markPlantWatered } from '@/models/plant'
+import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
 
 const isDrawerVisible = ref(false)
 
-const plants = ref<Plant[]>([])
+const { data: plants } = usePlantsQuery()
 
-const hasPlants = computed(() => Boolean(plants.value.length))
+const hasPlants = computed(() => Boolean(plants.value?.length))
 
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 const todayTime = today.getTime()
-
-onMounted(async () => {
-    plants.value = await fetchPlants()
-})
 
 const isPlantWatered = (plantDates: number[]) => plantDates.includes(todayTime)
 </script>
