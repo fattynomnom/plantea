@@ -5,7 +5,7 @@
             <small class="font-normal"> Add a plant to get started. </small>
         </div>
 
-        <CustomButton variant="link" @click="$emit('add-plant')">
+        <CustomButton @click="$emit('add-plant')">
             <PlusCircleIcon />
             <span>Add plant setup</span>
         </CustomButton>

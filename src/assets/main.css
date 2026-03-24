@@ -194,6 +194,10 @@ label {
 .bg-color-primary {
     background-color: var(--bg-color);
 }
+
+.color-primary {
+    color: var(--color-primary);
+}
 /* #endregion */
 
 /* #region Vue transitions */
@@ -328,8 +332,8 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 /* #endregion */
 
 /* #region PrimeVue InputText */
-input[data-pc-name='inputtext'] {
-    @apply rounded-2xl text-inherit bg-white text-sm font-normal px-5 py-3 border-0;
+.p-inputtext {
+    @apply rounded-2xl text-inherit bg-white text-sm font-normal px-5 py-3 border-0 !important;
 }
 /* #endregion */
 

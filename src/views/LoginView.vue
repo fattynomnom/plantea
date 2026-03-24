@@ -6,7 +6,7 @@
 
         <Logo class="h-48 w-48" />
 
-        <CustomButton class="w-full" variant="accent" @click="displayPopup">
+        <CustomButton class="w-full" @click="displayPopup">
             <GoogleIcon />
             <span>Google sign in</span>
         </CustomButton>
