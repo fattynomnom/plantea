@@ -10,7 +10,13 @@ import Tooltip from 'primevue/tooltip'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 
 const app = createApp(App)
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 5 * 60 * 1000
+        }
+    }
+})
 
 app.use(router)
     .use(PrimeVue, {
