@@ -11,7 +11,7 @@
                         'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
                         'opacity-50': isPlantWateredToday(plant)
                     }"
-                    @click="markPlantWatered(plant)"
+                    @click="onWaterPlantClick(plant)"
                 >
                     {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
                 </li>
@@ -33,15 +33,15 @@
                     <AccordionContent>
                         <div class="space-y-4">
                             <div class="space-y-3">
-                                <h3>Last 10 watering times</h3>
+                                <h3>Last 5 watering times</h3>
 
                                 <ul>
                                     <li
-                                        v-for="datetimes in plant.datetimes"
+                                        v-for="datetimes in plant.datetimes.slice(0, 5)"
                                         :key="`${plant.id}-${datetimes}`"
                                         class="tracking-wider"
                                     >
-                                        {{ dayjs().format('DD/MM/YYYY') }}
+                                        {{ dayjs(datetimes).format('DD/MM/YYYY') }}
                                     </li>
                                 </ul>
                             </div>
@@ -69,14 +69,29 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { markPlantWatered, isPlantWateredToday } from '@/models/plant'
-import { usePlantsQuery } from '@/composables/usePlantsQuery'
+import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
+import { plantsQueryKey, usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
+import { useToast } from '@/composables/useToast'
+import { useQueryClient } from '@tanstack/vue-query'
 
 const isDrawerVisible = ref(false)
 
 const { data: plants } = usePlantsQuery()
 
+const queryClient = useQueryClient()
+
+const { displayGenericError } = useToast()
+
 const hasPlants = computed(() => Boolean(plants.value?.length))
+
+const onWaterPlantClick = async (plant: Plant) => {
+    try {
+        await markPlantWatered(plant)
+        await queryClient.invalidateQueries({ queryKey: plantsQueryKey })
+    } catch {
+        displayGenericError()
+    }
+}
 </script>
