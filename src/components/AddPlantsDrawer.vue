@@ -1,10 +1,5 @@
 <template>
-    <Drawer
-        v-model:visible="visible"
-        header="Add new plant"
-        position="bottom"
-        :class="{ dark: isDark }"
-    >
+    <Drawer v-model:visible="visible" header="Add new plant" position="bottom">
         <form class="space-y-7" @submit.prevent="onSubmit">
             <div class="flex flex-col space-y-2">
                 <label for="name-input">Name</label>
@@ -26,25 +21,32 @@ import { ArrowRightCircleIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { ref } from 'vue'
-import { useDark } from '@vueuse/core'
 import { InputText } from 'primevue'
 import { createPlant } from '@/models/plant'
-
-const emit = defineEmits<{
-    (e: 'submitted'): void
-}>()
-
-const isDark = useDark()
+import { usePlantsQuery } from '@/composables/usePlantsQuery'
+import { useToast } from '@/composables/useToast'
 
 const visible = defineModel<boolean>('visible', { required: true })
+
+const { invalidatePlantsQuery } = usePlantsQuery()
+
+const { displayGenericError } = useToast()
 
 const name = ref<string>('')
 
 const onSubmit = async () => {
-    if (name.value) {
-        await createPlant({ name: name.value, dates: [] })
+    if (!name.value) {
+        return
+    }
+
+    try {
+        await createPlant({ name: name.value, datetimes: [] })
+        await invalidatePlantsQuery()
         visible.value = false
-        emit('submitted')
+    } catch {
+        displayGenericError()
+    } finally {
+        name.value = ''
     }
 }
 </script>

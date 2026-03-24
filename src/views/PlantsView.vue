@@ -63,24 +63,22 @@
         </div>
     </main>
 
-    <!-- <AddPlantsDrawer v-model:visible="isDrawerVisible" @submitted="fetchData" /> -->
+    <AddPlantsDrawer v-model:visible="isDrawerVisible" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
-import { plantsQueryKey, usePlantsQuery } from '@/composables/usePlantsQuery'
+import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
-import { useQueryClient } from '@tanstack/vue-query'
+import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
 
 const isDrawerVisible = ref(false)
 
-const { data: plants } = usePlantsQuery()
-
-const queryClient = useQueryClient()
+const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
 
@@ -89,7 +87,7 @@ const hasPlants = computed(() => Boolean(plants.value?.length))
 const onWaterPlantClick = async (plant: Plant) => {
     try {
         await markPlantWatered(plant)
-        await queryClient.invalidateQueries({ queryKey: plantsQueryKey })
+        await invalidatePlantsQuery()
     } catch {
         displayGenericError()
     }
