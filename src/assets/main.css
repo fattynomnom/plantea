@@ -124,6 +124,7 @@
     --toggle-height: 1.5rem;
     --toggle-border: 0px;
 
+    --font-primary: 'Inter', sans-serif;
     --font-accent: 'Nunito', sans-serif;
     --font-color: var(--color-gray-700);
     --bg-color: var(--color-orange-100);
@@ -155,7 +156,7 @@ html,
 body,
 div#app {
     height: 100%;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-primary);
     overscroll-behavior: none;
     background-color: var(--bg-color);
 }
@@ -174,9 +175,8 @@ h2 {
     @apply font-semibold text-xl;
 }
 
-h5 {
-    font-family: var(--font-accent);
-    @apply font-semibold;
+h3 {
+    @apply font-semibold text-gray-500;
 }
 
 small {
@@ -330,5 +330,29 @@ input[data-pc-name='inputtext'] {
 /* #region PrimeVue Tooltip */
 .p-tooltip-text {
     @apply rounded-xl text-xs bg-gray-950 !important;
+}
+/* #endregion */
+
+/* #region PrimeVue Tooltip */
+.p-accordion {
+    @apply shadow-lg overflow-hidden rounded-2xl divide-y divide-gray-200 !important;
+}
+
+.p-accordionpanel-active {
+    @apply divide-y !important;
+}
+
+.p-accordionheader {
+    color: var(--font-color) !important;
+    @apply bg-white font-normal border-0 !important;
+}
+
+.p-accordionheader-toggle-icon {
+    color: var(--font-color) !important;
+}
+
+.p-accordioncontent-content {
+    color: var(--font-color) !important;
+    @apply bg-white border-0 !important;
 }
 /* #endregion */

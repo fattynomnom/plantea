@@ -1,61 +1,77 @@
 <template>
-    <main class="h-full space-y-3">
-        <div class="flex items-center justify-between px-2">
+    <main class="h-full space-y-5">
+        <div class="space-y-3">
             <h2>Which plants have you watered today?</h2>
 
-            <div class="hidden sm:block">
-                <CustomButton variant="link" @click="isDrawerVisible = true">
-                    <PlusCircleIcon />
-                    <span>Add plant setup</span>
-                </CustomButton>
-            </div>
+            <ul v-if="hasPlants" class="grid grid-cols-2 gap-3">
+                <li
+                    v-for="plant in plants"
+                    :key="plant.id"
+                    :class="{
+                        'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
+                        'opacity-50': isPlantWatered(plant.datetimes)
+                    }"
+                    @click="markPlantWatered(plant)"
+                >
+                    {{ plant.name }} {{ isPlantWatered(plant.datetimes) ? '(WATERED)' : '' }}
+                </li>
+            </ul>
+
+            <PlantNotFoundCard v-else @add-plant="isDrawerVisible = true" />
         </div>
 
-        <ul v-if="hasPlants" class="grid grid-cols-2 gap-3">
-            <li
-                v-for="plant in plants"
-                :key="plant.id"
-                :class="{
-                    'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
-                    'opacity-50': isPlantWatered(plant.datetimes)
-                }"
-                @click="markPlantWatered(plant)"
-            >
-                {{ plant.name }} {{ isPlantWatered(plant.datetimes) ? '(WATERED)' : '' }}
-            </li>
-        </ul>
+        <div class="space-y-3">
+            <h2>All plants history</h2>
 
-        <div
-            v-else
-            class="rounded-2xl p-5 bg-white shadow-lg flex flex-col justify-center space-y-5"
-        >
-            <div class="space-y-3 text-center">
-                <h2 class="text-gray-500 font-bold">404 plants not found.</h2>
-                <small class="font-normal"> Add a plant to get started. </small>
-            </div>
+            <Accordion v-if="hasPlants" value="0">
+                <AccordionPanel
+                    v-for="plant in plants"
+                    :key="`accordion-item-${plant.id}`"
+                    :value="plant.id"
+                >
+                    <AccordionHeader>{{ plant.name }}</AccordionHeader>
+                    <AccordionContent>
+                        <div class="space-y-4">
+                            <div class="space-y-3">
+                                <h3>Last 10 watering times</h3>
 
-            <CustomButton variant="link" @click="isDrawerVisible = true">
-                <PlusCircleIcon />
-                <span>Add plant setup</span>
-            </CustomButton>
+                                <ul>
+                                    <li
+                                        v-for="datetimes in plant.datetimes"
+                                        :key="`${plant.id}-${datetimes}`"
+                                        class="tracking-wider"
+                                    >
+                                        {{ dayjs().format('DD/MM/YYYY') }}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="space-y-3">
+                                <h3>Recommendation</h3>
+                                <p>
+                                    Water every <strong>7 days</strong>.
+                                    <br />
+                                    Next watering at <strong>06/07/2026</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </AccordionContent>
+                </AccordionPanel>
+            </Accordion>
+
+            <PlantNotFoundCard v-else @add-plant="isDrawerVisible = true" />
         </div>
-
-        <SignInDialog />
-
-        <AddPlantsDrawer v-model:visible="isDrawerVisible" @submitted="fetchData" />
     </main>
+
+    <!-- <AddPlantsDrawer v-model:visible="isDrawerVisible" @submitted="fetchData" /> -->
 </template>
 
 <script setup lang="ts">
-import { PlusCircleIcon } from '@heroicons/vue/24/outline'
-import CustomButton from '@/components/CustomButton.vue'
-import SignInDialog from '@/components/SignInDialog.vue'
-import { computed, ref, watch } from 'vue'
-import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
+import { computed, onMounted, ref } from 'vue'
+import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { fetchPlants, markPlantWatered, type Plant } from '@/models/plant'
-import { useFirebaseUser } from '@/composables/useFirebaseUser'
-
-const { user } = useFirebaseUser()
+import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
+import dayjs from 'dayjs'
 
 const isDrawerVisible = ref(false)
 
@@ -67,15 +83,9 @@ const today = new Date()
 today.setHours(0, 0, 0, 0)
 const todayTime = today.getTime()
 
-const fetchData = async () => {
+onMounted(async () => {
     plants.value = await fetchPlants()
-}
+})
 
 const isPlantWatered = (plantDates: number[]) => plantDates.includes(todayTime)
-
-watch(user, value => {
-    if (value) {
-        fetchData()
-    }
-})
 </script>

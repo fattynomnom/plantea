@@ -1,0 +1,12 @@
+{
+    "name": "Plantea",
+    "short_name": "Plantea",
+    "description": "Get your daily plantea.",
+    "background_color": "#ffedd5",
+    "theme_color": "#166534",
+    "orientation": "portrait",
+    "display": "standalone",
+    "display_override": ["standalone"],
+    "scope": "./",
+    "start_url": "./"
+}

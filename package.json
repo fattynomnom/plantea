@@ -20,6 +20,7 @@
         "@primeuix/themes": "^2.0.3",
         "@vueform/toggle": "^2.1.4",
         "@vueuse/core": "^12.8.2",
+        "dayjs": "^1.11.20",
         "firebase": "^12.8.0",
         "primevue": "^4.5.4",
         "vue": "^3.5.22",
