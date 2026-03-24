@@ -7,8 +7,16 @@ import PrimeVue from 'primevue/config'
 import { ToastService } from 'primevue'
 import Lara from '@primeuix/themes/lara'
 import Tooltip from 'primevue/tooltip'
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 
 const app = createApp(App)
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 5 * 60 * 1000
+        }
+    }
+})
 
 app.use(router)
     .use(PrimeVue, {
@@ -16,6 +24,7 @@ app.use(router)
             preset: Lara
         }
     })
+    .use(VueQueryPlugin, { queryClient })
     .use(ToastService)
     .directive('tooltip', Tooltip)
 

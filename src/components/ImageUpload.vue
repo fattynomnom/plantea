@@ -81,7 +81,6 @@ const fileUpload = useTemplateRef('file-upload')
 
 onMounted(() => {
     if (initialFiles.length) {
-        // @ts-ignore
         fileUpload.value?.onFileSelect({ target: { files: initialFiles } })
     }
 })

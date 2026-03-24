@@ -17,6 +17,8 @@ interface DbPlant {
     dates: Timestamp[]
 }
 
+export type PlantInput = Omit<Plant, 'id'>
+
 // #region firebase functions
 const PLANT_PATHS = ['plants']
 
@@ -43,18 +45,21 @@ const plantCollectionConfig: CollectionConfig<Plant, DbPlant> = {
 
 export const fetchPlants = () => fetchCollection(plantCollectionConfig)
 
-export const createPlant = (data: Omit<Plant, 'id'>) => createDoc(plantCollectionConfig, data)
+export const createPlant = (data: PlantInput) => createDoc(plantCollectionConfig, data)
 
 const updatePlant = (data: Plant) => updateDoc(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
-export const markPlantWatered = async (plant: Plant) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const todayDateTime = today.getTime()
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+const todayDateTime = today.getTime()
 
-    if (plant.datetimes.includes(todayDateTime)) {
+export const isPlantWateredToday = (plant: Pick<Plant, 'datetimes'>) =>
+    plant.datetimes.includes(todayDateTime)
+
+export const markPlantWatered = async (plant: Plant) => {
+    if (isPlantWateredToday(plant)) {
         return
     }
 

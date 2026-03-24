@@ -9,11 +9,11 @@
                     :key="plant.id"
                     :class="{
                         'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
-                        'opacity-50': isPlantWatered(plant.datetimes)
+                        'opacity-50': isPlantWateredToday(plant)
                     }"
-                    @click="markPlantWatered(plant)"
+                    @click="onWaterPlantClick(plant)"
                 >
-                    {{ plant.name }} {{ isPlantWatered(plant.datetimes) ? '(WATERED)' : '' }}
+                    {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
                 </li>
             </ul>
 
@@ -33,15 +33,15 @@
                     <AccordionContent>
                         <div class="space-y-4">
                             <div class="space-y-3">
-                                <h3>Last 10 watering times</h3>
+                                <h3>Last 5 watering times</h3>
 
                                 <ul>
                                     <li
-                                        v-for="datetimes in plant.datetimes"
+                                        v-for="datetimes in plant.datetimes.slice(0, 5)"
                                         :key="`${plant.id}-${datetimes}`"
                                         class="tracking-wider"
                                     >
-                                        {{ dayjs().format('DD/MM/YYYY') }}
+                                        {{ dayjs(datetimes).format('DD/MM/YYYY') }}
                                     </li>
                                 </ul>
                             </div>
@@ -63,29 +63,33 @@
         </div>
     </main>
 
-    <!-- <AddPlantsDrawer v-model:visible="isDrawerVisible" @submitted="fetchData" /> -->
+    <AddPlantsDrawer v-model:visible="isDrawerVisible" />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { fetchPlants, markPlantWatered, type Plant } from '@/models/plant'
+import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
+import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
+import { useToast } from '@/composables/useToast'
+import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
 
 const isDrawerVisible = ref(false)
 
-const plants = ref<Plant[]>([])
+const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
-const hasPlants = computed(() => Boolean(plants.value.length))
+const { displayGenericError } = useToast()
 
-const today = new Date()
-today.setHours(0, 0, 0, 0)
-const todayTime = today.getTime()
+const hasPlants = computed(() => Boolean(plants.value?.length))
 
-onMounted(async () => {
-    plants.value = await fetchPlants()
-})
-
-const isPlantWatered = (plantDates: number[]) => plantDates.includes(todayTime)
+const onWaterPlantClick = async (plant: Plant) => {
+    try {
+        await markPlantWatered(plant)
+        await invalidatePlantsQuery()
+    } catch {
+        displayGenericError()
+    }
+}
 </script>

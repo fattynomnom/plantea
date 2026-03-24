@@ -188,11 +188,15 @@ a {
 }
 
 label {
-    @apply text-sm text-gray-200;
+    @apply text-sm;
 }
 
 .bg-color-primary {
     background-color: var(--bg-color);
+}
+
+.color-primary {
+    color: var(--color-primary);
 }
 /* #endregion */
 
@@ -241,7 +245,9 @@ div[data-pc-name='toast'] span[data-pc-section='summary'] {
 
 /* #region PrimeVue drawer */
 div[data-pc-name='drawer'] {
-    @apply !bg-gray-100 dark:!bg-gray-900 !border-0 !rounded-l-2xl text-inherit;
+    background-color: var(--bg-color) !important;
+    color: var(--font-color) !important;
+    @apply !border-0 !rounded-t-2xl;
 }
 
 .p-drawer-bottom .p-drawer {
@@ -249,7 +255,11 @@ div[data-pc-name='drawer'] {
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='header'] {
-    @apply !px-10;
+    @apply !px-7;
+}
+
+.p-drawer-close-button {
+    color: var(--font-color) !important;
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='title'] {
@@ -257,7 +267,7 @@ div[data-pc-name='drawer'] div[data-pc-section='title'] {
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='content'] {
-    @apply !px-10;
+    @apply !px-7;
 }
 /* #endregion */
 
@@ -322,8 +332,8 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 /* #endregion */
 
 /* #region PrimeVue InputText */
-input[data-pc-name='inputtext'] {
-    @apply rounded-2xl bg-transparent !shadow-none hover:!border-indigo-500 text-sm font-normal text-gray-300 px-5 py-3;
+.p-inputtext {
+    @apply rounded-2xl text-inherit bg-white text-sm font-normal px-5 py-3 border-0 !important;
 }
 /* #endregion */
 
