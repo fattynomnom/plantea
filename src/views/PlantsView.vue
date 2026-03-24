@@ -9,11 +9,11 @@
                     :key="plant.id"
                     :class="{
                         'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
-                        'opacity-50': isPlantWatered(plant.datetimes)
+                        'opacity-50': isPlantWateredToday(plant)
                     }"
                     @click="markPlantWatered(plant)"
                 >
-                    {{ plant.name }} {{ isPlantWatered(plant.datetimes) ? '(WATERED)' : '' }}
+                    {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
                 </li>
             </ul>
 
@@ -69,7 +69,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { markPlantWatered } from '@/models/plant'
+import { markPlantWatered, isPlantWateredToday } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
@@ -79,10 +79,4 @@ const isDrawerVisible = ref(false)
 const { data: plants } = usePlantsQuery()
 
 const hasPlants = computed(() => Boolean(plants.value?.length))
-
-const today = new Date()
-today.setHours(0, 0, 0, 0)
-const todayTime = today.getTime()
-
-const isPlantWatered = (plantDates: number[]) => plantDates.includes(todayTime)
 </script>

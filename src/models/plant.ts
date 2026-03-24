@@ -49,12 +49,20 @@ const updatePlant = (data: Plant) => updateDoc(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
+export const isPlantWateredToday = (plant: Pick<Plant, 'datetimes'>) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayDateTime = today.getTime()
+
+    return plant.datetimes.includes(todayDateTime)
+}
+
 export const markPlantWatered = async (plant: Plant) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const todayDateTime = today.getTime()
 
-    if (plant.datetimes.includes(todayDateTime)) {
+    if (isPlantWateredToday(plant)) {
         return
     }
 
