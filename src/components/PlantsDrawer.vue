@@ -5,11 +5,16 @@
                 <div class="flex flex-col space-y-2">
                     <label for="name-input">Name</label>
                     <InputText id="name-input" v-model.trim="plant.name" type="text" name="Name" />
-                    <small v-if="error" class="text-red-900">{{ error }}</small>
+                    <small v-if="error" class="color-danger">{{ error }}</small>
                 </div>
 
                 <div v-if="plant.dates.length" class="flex flex-col space-y-2">
-                    <label for="watering-date-inputs">Watering dates</label>
+                    <div class="flex items-center justify-between">
+                        <label for="watering-date-inputs">Watering dates</label>
+                        <CustomButton variant="link" color="danger" @click="plant.dates = []">
+                            Clear all dates
+                        </CustomButton>
+                    </div>
                     <div
                         id="watering-date-inputs"
                         :class="{ 'grid grid-cols-2 gap-2': plant.dates.length > 1 }"

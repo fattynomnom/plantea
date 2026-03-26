@@ -43,7 +43,7 @@
                             <div class="space-y-3">
                                 <h3>Last 5 watering times</h3>
 
-                                <ul>
+                                <ul v-if="plant.datetimes.length">
                                     <li
                                         v-for="datetimes in plant.datetimes.slice(0, 5)"
                                         :key="`${plant.id}-${datetimes}`"
@@ -52,16 +52,18 @@
                                         {{ dayjs(datetimes).format('DD/MM/YYYY') }}
                                     </li>
                                 </ul>
+
+                                <p v-else>No data recorded.</p>
                             </div>
 
-                            <div class="space-y-3 mt-4">
+                            <!-- <div class="space-y-3 mt-4">
                                 <h3>Recommendation</h3>
                                 <p>
                                     Water every <strong>7 days</strong>.
                                     <br />
                                     Next watering at <strong>06/07/2026</strong>.
                                 </p>
-                            </div>
+                            </div> -->
                         </div>
                     </AccordionContent>
                 </AccordionPanel>

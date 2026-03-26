@@ -1,13 +1,18 @@
 <template>
-    <button :type="type" :data-variant="variant" @click="onClick">
+    <button :type="type" :data-variant="variant" :data-color="color" @click="onClick">
         <slot />
     </button>
 </template>
 
 <script setup lang="ts">
-const { type = 'button', variant = 'primary' } = defineProps<{
+const {
+    type = 'button',
+    variant = 'primary',
+    color = 'primary'
+} = defineProps<{
     type?: 'button' | 'submit'
     variant?: 'primary' | 'link'
+    color?: 'primary' | 'danger'
 }>()
 
 // The explicitly defined emits, onClick function & defineExpose
@@ -39,8 +44,15 @@ button[data-variant='primary'] {
 }
 
 button[data-variant='link'] {
-    color: var(--color-primary);
     @apply bg-transparent;
+}
+
+button[data-variant='link'][data-color='primary'] {
+    color: var(--color-primary);
+}
+
+button[data-variant='link'][data-color='danger'] {
+    color: var(--color-danger);
 }
 
 :slotted(svg) {

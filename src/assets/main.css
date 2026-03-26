@@ -129,6 +129,7 @@
     --font-color: var(--color-gray-700);
     --bg-color: var(--color-orange-100);
     --color-primary: var(--color-green-800);
+    --color-danger: var(--color-red-900);
 
     --p-stepper-separator-background: var(--color-gray-700) !important;
     --p-fileupload-border-color: var(--color-gray-700) !important;
@@ -197,6 +198,10 @@ label {
 
 .color-primary {
     color: var(--color-primary);
+}
+
+.color-danger {
+    color: var(--color-danger);
 }
 /* #endregion */
 
