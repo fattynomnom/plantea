@@ -180,7 +180,7 @@ h3 {
 }
 
 small {
-    @apply text-sm font-semibold;
+    @apply text-sm;
 }
 
 a {

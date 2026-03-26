@@ -2,7 +2,7 @@
     <div class="rounded-2xl p-5 bg-white shadow-lg flex flex-col justify-center space-y-5">
         <div class="space-y-3 text-center">
             <h2 class="text-gray-500 font-bold">404 plants not found.</h2>
-            <small class="font-normal"> Add a plant to get started. </small>
+            <small>Add a plant to get started.</small>
         </div>
 
         <CustomButton @click="$emit('add-plant')">
