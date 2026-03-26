@@ -19,6 +19,7 @@ import {
     Firestore,
     setDoc
 } from '@firebase/firestore/lite'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 const app = initializeApp({
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -28,6 +29,16 @@ const app = initializeApp({
     messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID
 })
+
+// #region app check
+initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(import.meta.env.VITE_FIREBASE_RECAPTCHA_SITE_KEY),
+
+    // Optional argument. If true, the SDK automatically refreshes App Check
+    // tokens as needed.
+    isTokenAutoRefreshEnabled: true
+})
+// #endregion
 
 // #region auth
 export const firebaseAuth = getAuth(app)
