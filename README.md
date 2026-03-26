@@ -1,57 +1,31 @@
-# madeleine-portfolio
+# Plantea
 
-URL: [https://fattynomnom.github.io/](https://fattynomnom.github.io/)
+Giving you your daily plant tea. Record watering dates, and get AI generated daily updates on your watering schedules.
 
-## Recommended IDE Setup
+Built with VueJS and Firebase.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
-
-## Recommended Browser Setup
-
--   Chromium-based browsers (Chrome, Edge, Brave, etc.):
-    -   [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-    -   [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
--   Firefox:
-    -   [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-    -   [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
+## Development
 
 ```sh
 npm install
-npm run generate-posts
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+## Deploying web app
+
+Before deploying, make sure that:
+
+1. You have Firebase CLI installed via `npm install -g firebase-tools`.
+1. You have authenticated with Firebase via `firebase login`.
+
+Then to deploy:
 
 ```sh
 npm run build
+npm run deploy
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+Once deployed, it will be accessible at:
 
-```sh
-npm run lint
-```
-
-### To deploy to GitHub Pages
-
-```sh
-npm run generate-posts
-npm run build
-git subtree push --prefix dist origin gh-pages
-```
+- https://plantea-app.web.app/
+- https://plantea-app.firebaseapp.com/

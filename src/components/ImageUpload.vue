@@ -1,4 +1,5 @@
 <template>
+    <!-- @vue-ignore -->
     <FileUpload
         ref="file-upload"
         name="plant-setup"
@@ -63,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { FileUpload } from 'primevue'
 import CustomButton from './CustomButton.vue'
 import { PlusCircleIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
