@@ -31,7 +31,15 @@
                 >
                     <AccordionHeader>{{ plant.name }}</AccordionHeader>
                     <AccordionContent>
-                        <div class="space-y-4">
+                        <div class="relative">
+                            <CustomButton
+                                variant="link"
+                                class="absolute top-0 right-0"
+                                @click="editPlant(plant)"
+                            >
+                                <PencilSquareIcon />
+                            </CustomButton>
+
                             <div class="space-y-3">
                                 <h3>Last 5 watering times</h3>
 
@@ -46,7 +54,7 @@
                                 </ul>
                             </div>
 
-                            <div class="space-y-3">
+                            <div class="space-y-3 mt-4">
                                 <h3>Recommendation</h3>
                                 <p>
                                     Water every <strong>7 days</strong>.
@@ -73,8 +81,10 @@ import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'pr
 import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
+import CustomButton from '@/components/CustomButton.vue'
+import { PencilSquareIcon } from '@heroicons/vue/24/outline'
 
-const { isPlantsDrawerVisible } = usePlantsDrawer()
+const { isPlantsDrawerVisible, editPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 

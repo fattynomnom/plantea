@@ -28,7 +28,7 @@
 
     <Toast />
 
-    <AddPlantsDrawer v-model:visible="isPlantsDrawerVisible" />
+    <PlantsDrawer />
 </template>
 
 <script setup lang="ts">
@@ -43,7 +43,7 @@ import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
 import CustomButton from './components/CustomButton.vue'
-import AddPlantsDrawer from './components/AddPlantsDrawer.vue'
+import PlantsDrawer from './components/PlantsDrawer.vue'
 import { usePlantsDrawer } from './composables/usePlantsDrawer'
 
 const route = useRoute()

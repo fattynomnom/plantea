@@ -45,7 +45,7 @@
 
             <div class="flex justify-end">
                 <CustomButton type="submit">
-                    <span>Create</span>
+                    <span>{{ plant.id ? 'Update' : 'Create' }}</span>
                     <ArrowRightCircleIcon />
                 </CustomButton>
             </div>
@@ -57,26 +57,18 @@
 import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
-import { reactive, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { DatePicker, InputText } from 'primevue'
-import { createPlant, type PlantInput as PlantModel } from '@/models/plant'
+import { createPlant, updatePlant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
+import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 
-interface PlantInput extends Omit<PlantModel, 'datetimes'> {
-    dates: Array<Date | null>
-}
-
-const visible = defineModel<boolean>('visible', { required: true })
+const { isPlantsDrawerVisible: visible, plant, resetPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
-
-const plant = reactive<PlantInput>({
-    name: '',
-    dates: []
-})
 
 const error = ref('')
 
@@ -88,25 +80,38 @@ const onSubmit = async () => {
         return
     }
 
-    if (plants.value?.some(({ name }) => name === plant.name)) {
+    const otherPlants =
+        (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value) ?? []
+    if (otherPlants.some(({ name }) => name.toLowerCase() === plant.name.toLowerCase())) {
         error.value = 'Plant name is already being used'
         return
     }
 
     try {
-        await createPlant({
-            name: plant.name,
-            datetimes: (plant.dates.filter(date => Boolean(date)) as Date[]).map(date =>
-                date.getTime()
-            )
-        })
+        const validDatetimes = (plant.dates.filter(date => Boolean(date)) as Date[]).map(date =>
+            date.getTime()
+        )
+
+        if (plant.id) {
+            await updatePlant({
+                ...plant,
+                id: plant.id,
+                datetimes: validDatetimes
+            })
+        } else {
+            await createPlant({
+                name: plant.name,
+                datetimes: validDatetimes
+            })
+        }
+
         await invalidatePlantsQuery()
+
         visible.value = false
     } catch {
         displayGenericError()
     } finally {
-        plant.name = ''
-        plant.dates = []
+        resetPlant()
     }
 }
 
