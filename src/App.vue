@@ -5,8 +5,15 @@
             <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
-        <div class="flex-1">
+        <div class="flex-1 relative">
             <RouterView />
+
+            <CustomButton
+                class="absolute bottom-0 right-0 shadow-lg !rounded-full"
+                @click="isPlantsDrawerVisible = true"
+            >
+                <PlusIcon />
+            </CustomButton>
         </div>
     </div>
 
@@ -20,6 +27,8 @@
     </CustomDrawer>
 
     <Toast />
+
+    <AddPlantsDrawer v-model:visible="isPlantsDrawerVisible" />
 </template>
 
 <script setup lang="ts">
@@ -29,10 +38,13 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { firebaseAuth, signOut } from './modules/firebase'
 import { useToast } from 'primevue'
 import Logo from '@/assets/logo.svg?component'
-import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
+import { ArrowLeftStartOnRectangleIcon, Bars3Icon, PlusIcon } from '@heroicons/vue/24/outline'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
+import CustomButton from './components/CustomButton.vue'
+import AddPlantsDrawer from './components/AddPlantsDrawer.vue'
+import { usePlantsDrawer } from './composables/usePlantsDrawer'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +52,8 @@ const router = useRouter()
 const toast = useToast()
 
 const { user } = useFirebaseUser()
+
+const { isPlantsDrawerVisible } = usePlantsDrawer()
 
 const isMenuOpen = ref(false)
 

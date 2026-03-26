@@ -17,7 +17,7 @@
                 </li>
             </ul>
 
-            <PlantNotFoundCard v-else @add-plant="isDrawerVisible = true" />
+            <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
 
         <div class="space-y-3">
@@ -59,24 +59,22 @@
                 </AccordionPanel>
             </Accordion>
 
-            <PlantNotFoundCard v-else @add-plant="isDrawerVisible = true" />
+            <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
     </main>
-
-    <AddPlantsDrawer v-model:visible="isDrawerVisible" />
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
 import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
-import AddPlantsDrawer from '@/components/AddPlantsDrawer.vue'
+import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 
-const isDrawerVisible = ref(false)
+const { isPlantsDrawerVisible } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
