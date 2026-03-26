@@ -2,7 +2,7 @@
     <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
         <div class="flex justify-between items-center">
             <Logo class="h-10 w-10" />
-            <Bars3Icon class="h-5 w-5" @click="isMenuOpen = true" />
+            <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
         <div class="flex-1">
@@ -32,11 +32,14 @@ import Logo from '@/assets/logo.svg?component'
 import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
+import { useFirebaseUser } from './composables/useFirebaseUser'
 
 const route = useRoute()
 const router = useRouter()
 
 const toast = useToast()
+
+const { user } = useFirebaseUser()
 
 const isMenuOpen = ref(false)
 
