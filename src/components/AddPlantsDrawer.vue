@@ -94,7 +94,12 @@ const onSubmit = async () => {
     }
 
     try {
-        await createPlant({ name: plant.name, datetimes: [] })
+        await createPlant({
+            name: plant.name,
+            datetimes: (plant.dates.filter(date => Boolean(date)) as Date[]).map(date =>
+                date.getTime()
+            )
+        })
         await invalidatePlantsQuery()
         visible.value = false
     } catch {
