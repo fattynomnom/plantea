@@ -20,7 +20,12 @@
             <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
 
-        <div class="space-y-3">
+        <div
+            :class="{
+                'space-y-3': true,
+                'pb-10': plants?.length
+            }"
+        >
             <h2>All plants history</h2>
 
             <Accordion v-if="hasPlants" value="0">

@@ -1,21 +1,23 @@
 <template>
-    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
-        <div class="flex justify-between items-center">
-            <Logo class="h-10 w-10" />
-            <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
+    <div class="relative">
+        <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
+            <div class="flex justify-between items-center">
+                <Logo class="h-10 w-10" />
+                <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
+            </div>
+
+            <div class="flex-1">
+                <RouterView />
+            </div>
         </div>
 
-        <div class="flex-1 relative">
-            <RouterView />
-
-            <CustomButton
-                v-if="user"
-                class="absolute bottom-0 right-0 shadow-lg !rounded-full"
-                @click="isPlantsDrawerVisible = true"
-            >
-                <PlusIcon />
-            </CustomButton>
-        </div>
+        <CustomButton
+            v-if="user"
+            class="fixed bottom-7 right-7 shadow-2xl !rounded-full ml-auto"
+            @click="isPlantsDrawerVisible = true"
+        >
+            <PlusIcon />
+        </CustomButton>
     </div>
 
     <CustomDrawer v-model:visible="isMenuOpen">
