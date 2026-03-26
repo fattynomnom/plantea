@@ -9,6 +9,7 @@
             <RouterView />
 
             <CustomButton
+                v-if="user"
                 class="absolute bottom-0 right-0 shadow-lg !rounded-full"
                 @click="isPlantsDrawerVisible = true"
             >
