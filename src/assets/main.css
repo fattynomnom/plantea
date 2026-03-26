@@ -229,6 +229,12 @@ label {
 }
 /* #endregion */
 
+/* #region PrimeVue skeleton */
+.p-skeleton {
+    @apply bg-gray-300 animate-pulse rounded-2xl !important;
+}
+/* #endregion */
+
 /* #region PrimeVue toast */
 .p-toast {
     @apply left-5 w-auto !important;

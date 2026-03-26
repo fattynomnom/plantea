@@ -1,9 +1,13 @@
 <template>
-    <main class="h-full space-y-5">
+    <main class="h-full space-y-7">
         <div class="space-y-3">
             <h2>Which plants have you watered today?</h2>
 
-            <ul v-if="hasPlants" class="grid grid-cols-2 gap-3">
+            <div v-if="isLoading" class="grid grid-cols-2 gap-3">
+                <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
+            </div>
+
+            <ul v-else-if="hasPlants" class="grid grid-cols-2 gap-3">
                 <li
                     v-for="plant in plants"
                     :key="plant.id"
@@ -23,12 +27,16 @@
         <div
             :class="{
                 'space-y-3': true,
-                'pb-10': plants?.length
+                'pb-10': hasPlants
             }"
         >
             <h2>All plants history</h2>
 
-            <Accordion v-if="hasPlants" value="0">
+            <div v-if="isLoading" class="space-y-3">
+                <Skeleton v-for="index in 3" :key="`accordion-skeleton-${index}`" class="!h-7" />
+            </div>
+
+            <Accordion v-else-if="hasPlants" value="0">
                 <AccordionPanel
                     v-for="plant in plants"
                     :key="`accordion-item-${plant.id}`"
@@ -84,12 +92,15 @@ import { computed } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
-import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primevue'
+import { Accordion, AccordionContent, AccordionHeader, AccordionPanel, Skeleton } from 'primevue'
 import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 import CustomButton from '@/components/CustomButton.vue'
 import { PencilSquareIcon } from '@heroicons/vue/24/outline'
+import { useFirebaseUser } from '@/composables/useFirebaseUser'
+
+const { user } = useFirebaseUser()
 
 const { isPlantsDrawerVisible, editPlant } = usePlantsDrawer()
 
@@ -98,6 +109,8 @@ const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 const { displayGenericError } = useToast()
 
 const hasPlants = computed(() => Boolean(plants.value?.length))
+
+const isLoading = computed(() => user.value === undefined || plants.value === undefined)
 
 const onWaterPlantClick = async (plant: Plant) => {
     try {
