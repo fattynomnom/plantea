@@ -11,7 +11,8 @@ const isPlantsDrawerVisible = ref(false)
 const plant = reactive<PlantInput>({
     id: undefined,
     name: '',
-    dates: []
+    dates: [],
+    area: undefined
 })
 
 export const usePlantsDrawer = () => {
@@ -19,6 +20,7 @@ export const usePlantsDrawer = () => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.map(datetime => new Date(datetime))
+        plant.area = data.area
         isPlantsDrawerVisible.value = true
     }
 
@@ -26,6 +28,7 @@ export const usePlantsDrawer = () => {
         plant.id = undefined
         plant.name = ''
         plant.dates = []
+        plant.area = undefined
     }
 
     return { isPlantsDrawerVisible, plant, editPlant, resetPlant }

@@ -12,12 +12,15 @@
                     v-for="plant in plants"
                     :key="plant.id"
                     :class="{
-                        'px-4 py-2 bg-white shadow-lg rounded-2xl': true,
+                        'px-4 py-2 bg-white shadow-lg rounded-2xl flex flex-col justify-center': true,
                         'opacity-50': isPlantWateredToday(plant)
                     }"
                     @click="onWaterPlantClick(plant)"
                 >
-                    {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
+                    <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
+                    <span>
+                        {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
+                    </span>
                 </li>
             </ul>
 
@@ -42,7 +45,12 @@
                     :key="`accordion-item-${plant.id}`"
                     :value="plant.id"
                 >
-                    <AccordionHeader>{{ plant.name }}</AccordionHeader>
+                    <AccordionHeader>
+                        <div class="flex flex-col space-y-1">
+                            <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
+                            <span>{{ plant.name }}</span>
+                        </div>
+                    </AccordionHeader>
                     <AccordionContent>
                         <div class="relative">
                             <CustomButton
@@ -116,7 +124,8 @@ const onWaterPlantClick = async (plant: Plant) => {
     try {
         await markPlantWatered(plant)
         await invalidatePlantsQuery()
-    } catch {
+    } catch (error) {
+        console.log(Error, error)
         displayGenericError()
     }
 }

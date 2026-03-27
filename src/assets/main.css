@@ -262,7 +262,7 @@ div[data-pc-name='drawer'] {
 }
 
 .p-drawer-bottom .p-drawer {
-    @apply h-fit !important;
+    @apply h-fit max-h-[70%] !important;
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='header'] {
@@ -375,5 +375,21 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 .p-accordioncontent-content {
     color: var(--font-color) !important;
     @apply bg-white border-0 !important;
+}
+/* #endregion */
+
+/* #region PrimeVue autocomplete */
+.p-autocomplete-overlay {
+    color: var(--font-color) !important;
+    @apply bg-white border-0 rounded-2xl !important;
+}
+
+.p-autocomplete-dropdown {
+    @apply bg-white border-0 rounded-r-2xl !important;
+}
+
+.p-autocomplete-option {
+    color: var(--font-color) !important;
+    @apply bg-white !important;
 }
 /* #endregion */

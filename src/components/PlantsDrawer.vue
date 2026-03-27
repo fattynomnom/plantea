@@ -4,8 +4,24 @@
             <div class="space-y-5">
                 <div class="flex flex-col space-y-2">
                     <label for="name-input">Name</label>
-                    <InputText id="name-input" v-model.trim="plant.name" type="text" name="Name" />
+                    <InputText
+                        id="name-input"
+                        v-model.trim="plant.name"
+                        type="text"
+                        name="Name"
+                        placeholder="Name of plant"
+                    />
                     <small v-if="error" class="color-danger">{{ error }}</small>
+                </div>
+
+                <div class="flex flex-col space-y-2">
+                    <label for="name-input">Area (optional)</label>
+                    <AutoComplete
+                        v-model.trim="plant.area"
+                        :suggestions="filteredAreas"
+                        fluid
+                        placeholder="Area which the plant is located in"
+                    />
                 </div>
 
                 <div v-if="plant.dates.length" class="flex flex-col space-y-2">
@@ -62,8 +78,8 @@
 import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
-import { ref, watch } from 'vue'
-import { DatePicker, InputText } from 'primevue'
+import { computed, ref, watch } from 'vue'
+import { AutoComplete, DatePicker, InputText } from 'primevue'
 import { createPlant, updatePlant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
@@ -74,6 +90,19 @@ const { isPlantsDrawerVisible: visible, plant, resetPlant } = usePlantsDrawer()
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
+
+const existingAreas = computed(
+    () =>
+        [
+            ...new Set(plants.value?.map(({ area }) => area).filter(area => Boolean(area)) ?? [])
+        ] as string[]
+)
+
+const filteredAreas = computed(() =>
+    plant.area
+        ? existingAreas.value.filter(area => area.toLowerCase().includes(plant.area!.toLowerCase()))
+        : existingAreas.value
+)
 
 const error = ref('')
 
@@ -126,6 +155,13 @@ watch(
         if (value) {
             error.value = ''
         }
+    }
+)
+
+watch(
+    () => plant.area,
+    value => {
+        console.log(1, value)
     }
 )
 </script>
