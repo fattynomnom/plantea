@@ -16,7 +16,13 @@ export const usePlantsQuery = () => {
             enabled: computed(() => Boolean(user.value)),
             queryFn: async () => {
                 const plants = await fetchPlants()
-                return plants.sort((a, b) => a.name.localeCompare(b.name))
+                return plants.sort((a, b) => {
+                    if (a.area && b.area) {
+                        return a.area.localeCompare(b.area)
+                    }
+
+                    return a.name.localeCompare(b.name)
+                })
             }
         }),
         invalidatePlantsQuery: () => queryClient.invalidateQueries({ queryKey: plantsQueryKey })
