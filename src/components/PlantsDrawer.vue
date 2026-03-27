@@ -116,7 +116,12 @@ const onSubmit = async () => {
 
     const otherPlants =
         (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value) ?? []
-    if (otherPlants.some(({ name }) => name.toLowerCase() === plant.name.toLowerCase())) {
+    if (
+        otherPlants.some(
+            ({ name, area }) =>
+                `${name}-${area}`.toLowerCase() === `${plant.name}-${plant.area}`.toLowerCase()
+        )
+    ) {
         error.value = 'Plant name is already being used'
         return
     }
