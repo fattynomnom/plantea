@@ -4,12 +4,14 @@
             <div class="space-y-5">
                 <div class="flex flex-col space-y-2">
                     <label for="name-input">Name</label>
-                    <InputText
+                    <input
                         id="name-input"
                         v-model.trim="plant.name"
-                        type="text"
+                        text="text"
                         name="Name"
+                        autocomplete="off"
                         placeholder="Name of plant"
+                        class="p-inputtext"
                     />
                     <small v-if="error" class="color-danger">{{ error }}</small>
                 </div>
@@ -20,6 +22,7 @@
                         v-model.trim="plant.area"
                         :suggestions="filteredAreas"
                         fluid
+                        show-clear
                         placeholder="Area which the plant is located in"
                     />
                 </div>
@@ -79,7 +82,7 @@ import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { computed, ref, watch } from 'vue'
-import { AutoComplete, DatePicker, InputText } from 'primevue'
+import { AutoComplete, DatePicker } from 'primevue'
 import { createPlant, updatePlant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
