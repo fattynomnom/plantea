@@ -22,7 +22,7 @@
 
     <CustomDrawer v-model:visible="isMenuOpen">
         <ul>
-            <li class="flex space-x-3 items-center" @click="signOut">
+            <li class="flex space-x-3 items-center" @click="onSignOutClick">
                 <ArrowLeftStartOnRectangleIcon class="w-5 h-5" />
                 <span>Sign out</span>
             </li>
@@ -83,4 +83,9 @@ onAuthStateChanged(firebaseAuth, fbUser => {
         router.replace('/')
     }
 })
+
+const onSignOutClick = async () => {
+    await signOut()
+    isMenuOpen.value = false
+}
 </script>
