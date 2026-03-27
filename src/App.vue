@@ -1,5 +1,5 @@
 <template>
-    <div class="relative">
+    <div class="relative h-full">
         <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
             <div class="flex justify-between items-center">
                 <Logo class="h-10 w-10" />
