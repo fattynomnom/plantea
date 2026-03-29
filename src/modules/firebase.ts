@@ -20,6 +20,7 @@ import {
     setDoc
 } from '@firebase/firestore/lite'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai'
 
 const app = initializeApp({
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -55,6 +56,18 @@ export const signOut = () => signOutFirebase(firebaseAuth)
 
 // #region storage
 export const firebaseStorage = getStorage(app)
+// #endregion
+
+// #region genai
+const ai = getAI(app, { backend: new GoogleAIBackend() })
+const model = getGenerativeModel(ai, { model: 'gemini-3.1-flash-lite-preview' })
+
+export const genAi = async (prompt: string) => {
+    const { response } = await model.generateContent(prompt)
+    const text = response.text()
+
+    return text
+}
 // #endregion
 
 // #region database

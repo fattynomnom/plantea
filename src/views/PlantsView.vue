@@ -39,7 +39,7 @@
                 <Skeleton v-for="index in 3" :key="`accordion-skeleton-${index}`" class="!h-7" />
             </div>
 
-            <Accordion v-else-if="hasPlants" value="0">
+            <Accordion v-else-if="hasPlants" value="0" lazy>
                 <AccordionPanel
                     v-for="plant in plants"
                     :key="`accordion-item-${plant.id}`"
@@ -53,15 +53,20 @@
                     </AccordionHeader>
                     <AccordionContent>
                         <div class="relative">
-                            <CustomButton
-                                variant="link"
-                                class="absolute top-0 right-0"
-                                @click="editPlant(plant)"
-                            >
-                                <PencilSquareIcon />
-                            </CustomButton>
+                            <div class="absolute top-0 right-0 flex items-center space-x-2">
+                                <CustomButton variant="link" @click="editPlant(plant)">
+                                    <PencilSquareIcon />
+                                </CustomButton>
+                                <CustomButton
+                                    variant="link"
+                                    :is-loading="isGenerating"
+                                    @click="onGenerateClick(plant)"
+                                >
+                                    <SparklesIcon />
+                                </CustomButton>
+                            </div>
 
-                            <div class="space-y-3">
+                            <div class="space-y-1">
                                 <h3>Last 5 watering times</h3>
 
                                 <ul v-if="plant.datetimes.length">
@@ -77,14 +82,17 @@
                                 <p v-else>No data recorded.</p>
                             </div>
 
-                            <!-- <div class="space-y-3 mt-4">
+                            <div class="space-y-1 mt-4">
                                 <h3>Recommendation</h3>
-                                <p>
-                                    Water every <strong>7 days</strong>.
+                                <p v-if="isGenerating">Generating...</p>
+                                <p v-else-if="typeof plant.frequencyDays === 'number'">
+                                    Water every <strong>{{ plant.frequencyDays }} days</strong>.
                                     <br />
-                                    Next watering at <strong>06/07/2026</strong>.
+                                    Next watering at
+                                    <strong> {{ getNextWateringDate(plant) }} </strong>.
                                 </p>
-                            </div> -->
+                                <p v-else>No recommendation generated yet.</p>
+                            </div>
                         </div>
                     </AccordionContent>
                 </AccordionPanel>
@@ -96,16 +104,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { markPlantWatered, isPlantWateredToday, type Plant } from '@/models/plant'
+import { markPlantWatered, isPlantWateredToday, type Plant, genPlantAnalysis } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel, Skeleton } from 'primevue'
 import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 import CustomButton from '@/components/CustomButton.vue'
-import { PencilSquareIcon } from '@heroicons/vue/24/outline'
+import { PencilSquareIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
 
 const { user } = useFirebaseUser()
@@ -120,6 +128,8 @@ const hasPlants = computed(() => Boolean(plants.value?.length))
 
 const isLoading = computed(() => user.value === undefined || plants.value === undefined)
 
+const isGenerating = ref(false)
+
 const onWaterPlantClick = async (plant: Plant) => {
     try {
         await markPlantWatered(plant)
@@ -128,5 +138,31 @@ const onWaterPlantClick = async (plant: Plant) => {
         console.log(Error, error)
         displayGenericError()
     }
+}
+
+const onGenerateClick = async (plant: Plant) => {
+    isGenerating.value = true
+
+    try {
+        await genPlantAnalysis(plant)
+        await invalidatePlantsQuery()
+    } catch {
+        displayGenericError()
+    } finally {
+        isGenerating.value = false
+    }
+}
+
+const getNextWateringDate = ({
+    datetimes,
+    frequencyDays
+}: Pick<Plant, 'datetimes' | 'frequencyDays'>) => {
+    const latest = datetimes[0]
+
+    if (frequencyDays === undefined || latest === undefined) {
+        return null
+    }
+
+    return dayjs(latest).add(frequencyDays, 'days').format('DD/MM/YYYY')
 }
 </script>
