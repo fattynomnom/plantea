@@ -18,7 +18,11 @@ export const usePlantsQuery = () => {
                 const plants = await fetchPlants()
                 return plants.sort((a, b) => {
                     if (a.area && b.area) {
-                        return a.area.localeCompare(b.area)
+                        const areaCmp = a.area.localeCompare(b.area)
+                        if (areaCmp !== 0) {
+                            return areaCmp
+                        }
+                        return a.name.localeCompare(b.name)
                     }
 
                     return a.name.localeCompare(b.name)
