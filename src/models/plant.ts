@@ -89,20 +89,20 @@ export const markPlantWatered = async (plant: Plant) => {
     }
 
     let frequencyDays: number | undefined = undefined
-    const updatedDatetimes = [...plant.datetimes, todayDateTime]
+    const updatedPlant: Plant = { ...plant, datetimes: [...plant.datetimes, todayDateTime] }
 
     // regenerate recommendation when logged date is different from recommended date
     if (plant.nextWateringDate) {
         const nextWateringDatetime = plant.nextWateringDate.unix() * 1000
         if (nextWateringDatetime !== todayDateTime) {
-            frequencyDays = await genPlantAnalysis(plant)
+            frequencyDays = await genPlantAnalysis(updatedPlant)
         }
-    } else if (updatedDatetimes.length >= 4) {
-        // generate recommendation if there is none generated yet and there is a minimum of 4 logged dates
-        frequencyDays = await genPlantAnalysis(plant)
+    } else {
+        // generate recommendation if there is none generated yet
+        frequencyDays = await genPlantAnalysis(updatedPlant)
     }
 
-    await updatePlant({ ...plant, datetimes: updatedDatetimes, frequencyDays })
+    await updatePlant({ ...updatedPlant, frequencyDays })
 }
 
 export const genPlantAnalysis = async (plant: UpdatePlantInput): Promise<number> => {

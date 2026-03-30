@@ -60,7 +60,6 @@
                                 <CustomButton
                                     variant="link"
                                     :is-loading="isGenerating"
-                                    :is-disabled="plant.datetimes.length < 4"
                                     @click="onGenerateClick(plant)"
                                 >
                                     <SparklesIcon />
@@ -93,9 +92,6 @@
                                     <strong>
                                         {{ plant.nextWateringDate?.format('DD/MM/YYYY') }} </strong
                                     >.
-                                </p>
-                                <p v-else-if="plant.datetimes.length < 4">
-                                    Not enough logged data to generate recommendation.
                                 </p>
                                 <p v-else>No recommendation generated yet.</p>
                             </div>
