@@ -5,7 +5,7 @@ import {
     type CollectionConfig,
     genAi
 } from '@/modules/firebase'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import {
     QueryDocumentSnapshot,
     Timestamp,
@@ -19,7 +19,7 @@ export interface Plant {
     datetimes: number[]
     area?: string
     frequencyDays?: number
-    nextWateringDate?: string
+    nextWateringDate?: Dayjs
 }
 
 interface DbPlant {
@@ -57,7 +57,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
             frequencyDays: data.frequencyDays,
             nextWateringDate:
                 datetimes[0] && data.frequencyDays
-                    ? dayjs(datetimes[0]).add(data.frequencyDays, 'days').format('DD/MM/YYYY')
+                    ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
                     : undefined
         }
     }
@@ -83,12 +83,19 @@ const todayDateTime = today.getTime()
 export const isPlantWateredToday = (plant: Pick<Plant, 'datetimes'>) =>
     plant.datetimes.includes(todayDateTime)
 
-export const markPlantWatered = async (plant: UpdatePlantInput) => {
+export const markPlantWatered = async (plant: Plant) => {
     if (isPlantWateredToday(plant)) {
         return
     }
 
     await updatePlant({ ...plant, datetimes: [...plant.datetimes, todayDateTime] })
+
+    if (plant.nextWateringDate) {
+        const nextWateringDatetime = plant.nextWateringDate.unix() * 1000
+        if (nextWateringDatetime !== todayDateTime) {
+            await genPlantAnalysis(plant)
+        }
+    }
 }
 
 export const genPlantAnalysis = async (plant: UpdatePlantInput) => {
