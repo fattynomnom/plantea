@@ -88,17 +88,24 @@ export const markPlantWatered = async (plant: Plant) => {
         return
     }
 
-    await updatePlant({ ...plant, datetimes: [...plant.datetimes, todayDateTime] })
+    let frequencyDays: number | undefined = undefined
+    const updatedDatetimes = [...plant.datetimes, todayDateTime]
 
+    // regenerate recommendation when logged date is different from recommended date
     if (plant.nextWateringDate) {
         const nextWateringDatetime = plant.nextWateringDate.unix() * 1000
         if (nextWateringDatetime !== todayDateTime) {
-            await genPlantAnalysis(plant)
+            frequencyDays = await genPlantAnalysis(plant)
         }
+    } else if (updatedDatetimes.length >= 4) {
+        // generate recommendation if there is none generated yet and there is a minimum of 4 logged dates
+        frequencyDays = await genPlantAnalysis(plant)
     }
+
+    await updatePlant({ ...plant, datetimes: updatedDatetimes, frequencyDays })
 }
 
-export const genPlantAnalysis = async (plant: UpdatePlantInput) => {
+export const genPlantAnalysis = async (plant: UpdatePlantInput): Promise<number> => {
     const prompt = `The following is the user's inputted plant name and their logged historical watering dates.
 Plant name: ${plant.name}
 Dates: ${plant.datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY')).join(', ')}
@@ -114,12 +121,8 @@ Some things to consider:
     if (isNaN(days)) {
         console.log('GenAi error', result)
         throw new Error('Error generating plant analysis.')
-    } else {
-        await updatePlant({
-            ...plant,
-            frequencyDays: days
-        })
-        console.log(1, result)
     }
+
+    return days
 }
 // #endregion

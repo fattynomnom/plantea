@@ -112,7 +112,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
-import { markPlantWatered, isPlantWateredToday, type Plant, genPlantAnalysis } from '@/models/plant'
+import {
+    markPlantWatered,
+    isPlantWateredToday,
+    type Plant,
+    genPlantAnalysis,
+    updatePlant
+} from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel, Skeleton } from 'primevue'
 import dayjs from 'dayjs'
@@ -150,7 +156,11 @@ const onGenerateClick = async (plant: Plant) => {
     isGenerating.value = true
 
     try {
-        await genPlantAnalysis(plant)
+        const frequencyDays = await genPlantAnalysis(plant)
+        await updatePlant({
+            ...plant,
+            frequencyDays
+        })
         await invalidatePlantsQuery()
     } catch {
         displayGenericError()
@@ -161,7 +171,7 @@ const onGenerateClick = async (plant: Plant) => {
 </script>
 
 <style scoped>
-p {
+.p-accordioncontent-content p {
     @apply text-sm;
 }
 </style>
