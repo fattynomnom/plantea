@@ -4,6 +4,7 @@
         :data-variant="variant"
         :data-color="color"
         :data-loading="isLoading"
+        :disabled="isDisabled"
         @click="onClick"
     >
         <slot />
@@ -15,12 +16,14 @@ const {
     type = 'button',
     variant = 'primary',
     color = 'primary',
-    isLoading = false
+    isLoading = false,
+    isDisabled = false
 } = defineProps<{
     type?: 'button' | 'submit'
     variant?: 'primary' | 'link'
     color?: 'primary' | 'danger'
     isLoading?: boolean
+    isDisabled?: boolean
 }>()
 
 // The explicitly defined emits, onClick function & defineExpose
@@ -44,6 +47,10 @@ defineExpose({
 button {
     font-family: var(--font-accent);
     @apply text-sm transition-colors flex justify-center font-semibold rounded-2xl space-x-2;
+}
+
+button[disabled] {
+    @apply opacity-50;
 }
 
 button[data-loading='true'] {

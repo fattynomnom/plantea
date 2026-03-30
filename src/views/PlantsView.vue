@@ -60,6 +60,7 @@
                                 <CustomButton
                                     variant="link"
                                     :is-loading="isGenerating"
+                                    :is-disabled="plant.datetimes.length < 4"
                                     @click="onGenerateClick(plant)"
                                 >
                                     <SparklesIcon />
@@ -73,7 +74,7 @@
                                     <li
                                         v-for="datetimes in plant.datetimes.slice(0, 5)"
                                         :key="`${plant.id}-${datetimes}`"
-                                        class="tracking-wider"
+                                        class="tracking-wider text-sm"
                                     >
                                         {{ dayjs(datetimes).format('DD/MM/YYYY') }}
                                     </li>
@@ -92,6 +93,9 @@
                                     <strong>
                                         {{ plant.nextWateringDate?.format('DD/MM/YYYY') }} </strong
                                     >.
+                                </p>
+                                <p v-else-if="plant.datetimes.length < 4">
+                                    Not enough logged data to generate recommendation.
                                 </p>
                                 <p v-else>No recommendation generated yet.</p>
                             </div>
@@ -155,3 +159,9 @@ const onGenerateClick = async (plant: Plant) => {
     }
 }
 </script>
+
+<style scoped>
+p {
+    @apply text-sm;
+}
+</style>
