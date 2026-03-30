@@ -89,7 +89,9 @@
                                     Water every <strong>{{ plant.frequencyDays }} days</strong>.
                                     <br />
                                     Next watering at
-                                    <strong> {{ getNextWateringDate(plant) }} </strong>.
+                                    <strong>
+                                        {{ plant.nextWateringDate?.format('DD/MM/YYYY') }} </strong
+                                    >.
                                 </p>
                                 <p v-else>No recommendation generated yet.</p>
                             </div>
@@ -151,18 +153,5 @@ const onGenerateClick = async (plant: Plant) => {
     } finally {
         isGenerating.value = false
     }
-}
-
-const getNextWateringDate = ({
-    datetimes,
-    frequencyDays
-}: Pick<Plant, 'datetimes' | 'frequencyDays'>) => {
-    const latest = datetimes[0]
-
-    if (frequencyDays === undefined || latest === undefined) {
-        return null
-    }
-
-    return dayjs(latest).add(frequencyDays, 'days').format('DD/MM/YYYY')
 }
 </script>
