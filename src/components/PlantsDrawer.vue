@@ -142,7 +142,7 @@ const onSubmit = async () => {
             })
         } else {
             await createPlant({
-                name: plant.name,
+                ...plant,
                 datetimes: validDatetimes
             })
         }
