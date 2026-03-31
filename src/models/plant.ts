@@ -54,7 +54,9 @@ const shouldBeWatered = (nextWateringDate: Plant['nextWateringDate']) => {
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
     toFirestore: (plant: WithFieldValue<AddPlantInput>): DbPlant => ({
         name: plant.name as string,
-        dates: (plant.datetimes as number[]).map(datetime => Timestamp.fromMillis(datetime)),
+        dates: (plant.datetimes as number[])
+            .sort((a, b) => b - a)
+            .map(datetime => Timestamp.fromMillis(datetime)),
         ...(plant.area && { area: plant.area as string }),
         ...(typeof plant.frequencyDays === 'number' && {
             frequencyDays: plant.frequencyDays as number

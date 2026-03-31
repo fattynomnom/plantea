@@ -21,7 +21,7 @@ export const usePlantsDrawer = () => {
     const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes'>) => {
         plant.id = data.id
         plant.name = data.name
-        plant.dates = data.datetimes.map(datetime => new Date(datetime))
+        plant.dates = data.datetimes.map(datetime => new Date(datetime)).sort()
         plant.area = data.area
 
         originalDatetimes.value = data.datetimes
