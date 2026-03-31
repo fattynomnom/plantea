@@ -80,11 +80,11 @@
                             </div>
 
                             <div class="space-y-1">
-                                <h3>Last 5 watering times</h3>
+                                <h3>Logged watering times</h3>
 
-                                <ul v-if="plant.datetimes.length">
+                                <ul v-if="plant.datetimes.length" class="grid grid-cols-2">
                                     <li
-                                        v-for="datetimes in plant.datetimes.slice(0, 5)"
+                                        v-for="datetimes in plant.datetimes.slice(0, 10)"
                                         :key="`${plant.id}-${datetimes}`"
                                         class="tracking-wider text-sm"
                                     >
