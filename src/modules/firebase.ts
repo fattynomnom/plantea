@@ -17,7 +17,8 @@ import {
     type DocumentData,
     type FirestoreDataConverter,
     Firestore,
-    setDoc
+    setDoc,
+    writeBatch
 } from '@firebase/firestore/lite'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai'
@@ -139,6 +140,29 @@ export const updateDoc = async <
     const basePath = getBasePath()
     if (basePath) {
         await setDoc(doc(...basePath, ...paths, data.id).withConverter(converter), data)
+    }
+}
+
+export const batchUpdateDocs = async <
+    AppModelType extends UpdateAppModelType,
+    DbModelType extends DocumentData
+>(
+    { paths, converter }: CollectionConfig<AppModelType, DbModelType>,
+    data: AppModelType[]
+): Promise<void> => {
+    if (!data.length) {
+        return
+    }
+
+    const basePath = getBasePath()
+    if (basePath) {
+        const batch = writeBatch(firestore)
+        data.forEach(item => {
+            const docRef = doc(...basePath, ...paths, item.id).withConverter(converter)
+            batch.set(docRef, item)
+        })
+
+        await batch.commit()
     }
 }
 // #endregion

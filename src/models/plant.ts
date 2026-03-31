@@ -3,7 +3,8 @@ import {
     fetchCollection,
     updateDoc,
     type CollectionConfig,
-    genAi
+    genAi,
+    batchUpdateDocs
 } from '@/modules/firebase'
 import dayjs, { Dayjs } from 'dayjs'
 import {
@@ -91,15 +92,44 @@ const plantCollectionConfig: CollectionConfig<Plant, DbPlant> = {
     converter: plantConverter
 }
 
-export const fetchPlants = () => fetchCollection(plantCollectionConfig)
+const fetchPlants = () => fetchCollection(plantCollectionConfig)
 
 export const createPlant = (data: AddPlantInput) =>
     createDoc<AddPlantInput, DbPlant>(plantCollectionConfig, data)
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
+
+export const batchUpdatePlants = (data: UpdatePlantInput[]) =>
+    batchUpdateDocs(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
+export const fetchAndPurgePlants = async () => {
+    const plants = await fetchPlants()
+
+    try {
+        const purgedPlants = plants.reduce<UpdatePlantInput[]>((acc, plant) => {
+            if (plant.datetimes.length > 10) {
+                plant.datetimes.sort((a, b) => b - a)
+                const lastTenDates = plant.datetimes.slice(0, 10)
+
+                return [...acc, { ...plant, datetimes: lastTenDates }]
+            }
+
+            return acc
+        }, [])
+        console.log('Purged plants', purgedPlants)
+
+        if (purgedPlants.length) {
+            await batchUpdatePlants(purgedPlants)
+        }
+    } catch (error) {
+        console.log('Error purging plants', error)
+    }
+
+    return plants
+}
+
 export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) => {
     if (plant.isWateredToday) {
         return

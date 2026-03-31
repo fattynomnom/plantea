@@ -172,11 +172,4 @@ watch(
         }
     }
 )
-
-watch(
-    () => plant.area,
-    value => {
-        console.log(1, value)
-    }
-)
 </script>

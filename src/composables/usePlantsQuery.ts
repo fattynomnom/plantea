@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { fetchPlants } from '@/models/plant'
+import { fetchAndPurgePlants } from '@/models/plant'
 import { useFirebaseUser } from './useFirebaseUser'
 import { computed } from 'vue'
 
@@ -15,7 +15,7 @@ export const usePlantsQuery = () => {
             queryKey: plantsQueryKey,
             enabled: computed(() => Boolean(user.value)),
             queryFn: async () => {
-                const plants = await fetchPlants()
+                const plants = await fetchAndPurgePlants()
                 return plants.sort((a, b) => {
                     if (a.area && b.area) {
                         const areaCmp = a.area.localeCompare(b.area)
