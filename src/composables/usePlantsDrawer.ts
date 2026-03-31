@@ -16,6 +16,8 @@ const plant = reactive<PlantInput>({
     frequencyDays: undefined
 })
 
+const originalDatetimes = ref<Plant['datetimes']>()
+
 export const usePlantsDrawer = () => {
     const editPlant = (data: Plant) => {
         plant.id = data.id
@@ -23,6 +25,9 @@ export const usePlantsDrawer = () => {
         plant.dates = data.datetimes.map(datetime => new Date(datetime))
         plant.area = data.area
         plant.frequencyDays = data.frequencyDays
+
+        originalDatetimes.value = data.datetimes
+
         isPlantsDrawerVisible.value = true
     }
 
@@ -32,7 +37,9 @@ export const usePlantsDrawer = () => {
         plant.dates = []
         plant.area = undefined
         plant.frequencyDays = undefined
+
+        originalDatetimes.value = undefined
     }
 
-    return { isPlantsDrawerVisible, plant, editPlant, resetPlant }
+    return { isPlantsDrawerVisible, plant, originalDatetimes, editPlant, resetPlant }
 }

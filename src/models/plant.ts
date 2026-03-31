@@ -105,6 +105,25 @@ export const markPlantWatered = async (plant: Plant) => {
     await updatePlant({ ...updatedPlant, frequencyDays })
 }
 
+export const updatePlantWithRecommendation = async (
+    originalPlant: Pick<Plant, 'datetimes'>,
+    updatedPlant: UpdatePlantInput
+) => {
+    // regenerate recommendation if some datetimes have been updated
+    const originalDatetimes = originalPlant.datetimes.sort()
+    const updatedDatetimes = updatedPlant.datetimes.sort()
+    let frequencyDays: number | undefined = updatedPlant.frequencyDays
+    if (
+        originalDatetimes.some(
+            (originalDatetime, index) => originalDatetime !== updatedDatetimes[index]
+        )
+    ) {
+        frequencyDays = await genPlantAnalysis(updatedPlant)
+    }
+
+    await updatePlant({ ...updatedPlant, frequencyDays })
+}
+
 export const genPlantAnalysis = async (plant: UpdatePlantInput): Promise<number> => {
     const prompt = `The following is the user's inputted plant name and their logged historical watering dates.
 Plant name: ${plant.name}

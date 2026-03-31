@@ -83,12 +83,12 @@ import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { computed, ref, watch } from 'vue'
 import { AutoComplete, DatePicker } from 'primevue'
-import { createPlant, updatePlant } from '@/models/plant'
+import { createPlant, updatePlantWithRecommendation } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 
-const { isPlantsDrawerVisible: visible, plant, resetPlant } = usePlantsDrawer()
+const { isPlantsDrawerVisible: visible, plant, originalDatetimes, resetPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
@@ -135,11 +135,18 @@ const onSubmit = async () => {
         )
 
         if (plant.id) {
-            await updatePlant({
-                ...plant,
-                id: plant.id,
-                datetimes: validDatetimes
-            })
+            if (!originalDatetimes.value) {
+                throw new Error('Missing original datetimes.')
+            }
+
+            await updatePlantWithRecommendation(
+                { datetimes: originalDatetimes.value },
+                {
+                    ...plant,
+                    id: plant.id,
+                    datetimes: validDatetimes
+                }
+            )
         } else {
             await createPlant({
                 ...plant,
