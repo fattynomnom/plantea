@@ -12,13 +12,21 @@
                     v-for="plant in plants"
                     :key="plant.id"
                     :class="{
-                        'px-4 py-2 bg-white shadow-lg rounded-2xl flex flex-col justify-center': true,
+                        'px-4 py-2 bg-white shadow-lg rounded-2xl flex items-center space-x-2': true,
                         'opacity-50': plant.isWateredToday
                     }"
                     @click="onWaterPlantClick(plant)"
                 >
-                    <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
-                    <span> {{ plant.name }} {{ plant.isWateredToday ? '(WATERED)' : '' }} </span>
+                    <div class="flex flex-col justify-center">
+                        <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
+                        <span>
+                            {{ plant.name }} {{ plant.isWateredToday ? '(WATERED)' : '' }}
+                        </span>
+                    </div>
+                    <ExclamationCircleIcon
+                        v-if="plant.shouldBeWatered"
+                        class="flex-shrink-0 w-5 h-5 color-danger"
+                    />
                 </li>
             </ul>
 
@@ -44,9 +52,15 @@
                     :value="plant.id"
                 >
                     <AccordionHeader>
-                        <div class="flex flex-col space-y-1">
-                            <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
-                            <span>{{ plant.name }}</span>
+                        <div class="flex-1 flex items-center justify-between pr-3">
+                            <div class="flex flex-col space-y-1">
+                                <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
+                                <span>{{ plant.name }}</span>
+                            </div>
+                            <ExclamationCircleIcon
+                                v-if="plant.shouldBeWatered"
+                                class="flex-shrink-0 w-5 h-5 color-danger"
+                            />
                         </div>
                     </AccordionHeader>
                     <AccordionContent>
@@ -119,7 +133,7 @@ import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 import CustomButton from '@/components/CustomButton.vue'
-import { PencilSquareIcon, SparklesIcon } from '@heroicons/vue/24/outline'
+import { ExclamationCircleIcon, PencilSquareIcon, SparklesIcon } from '@heroicons/vue/24/outline'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
 
 const { user } = useFirebaseUser()
@@ -136,7 +150,7 @@ const isLoading = computed(() => user.value === undefined || plants.value === un
 
 const isGenerating = ref(false)
 
-const onWaterPlantClick = async (plant: Plant) => {
+const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>) => {
     try {
         await markPlantWatered(plant)
         await invalidatePlantsQuery()

@@ -21,6 +21,7 @@ export interface Plant {
     frequencyDays?: number
     nextWateringDate?: Dayjs
     isWateredToday: boolean
+    shouldBeWatered: boolean
 }
 
 interface DbPlant {
@@ -41,6 +42,15 @@ const today = new Date()
 today.setHours(0, 0, 0, 0)
 const todayDateTime = today.getTime()
 
+const shouldBeWatered = (nextWateringDate: Plant['nextWateringDate']) => {
+    if (!nextWateringDate) {
+        return false
+    }
+
+    const nextWateringDatetime = nextWateringDate.unix() * 1000
+    return nextWateringDatetime <= todayDateTime
+}
+
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
     toFirestore: (plant: WithFieldValue<AddPlantInput>): DbPlant => ({
         name: plant.name as string,
@@ -52,7 +62,13 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
     }),
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
         const data = snapshot.data()
+
         const datetimes = data.dates.map(({ seconds }) => seconds * 1000).sort((a, b) => b - a)
+        const nextWateringDate =
+            datetimes[0] && data.frequencyDays
+                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
+                : undefined
+
         const isWateredToday = datetimes.includes(todayDateTime)
 
         return {
@@ -61,11 +77,9 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
             datetimes,
             area: data.area,
             frequencyDays: data.frequencyDays,
-            nextWateringDate:
-                datetimes[0] && data.frequencyDays
-                    ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
-                    : undefined,
-            isWateredToday
+            nextWateringDate,
+            isWateredToday,
+            shouldBeWatered: shouldBeWatered(nextWateringDate)
         }
     }
 }
@@ -84,13 +98,16 @@ export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollection
 // #endregion
 
 // #region logical functions
-export const markPlantWatered = async (plant: Plant) => {
+export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) => {
     if (plant.isWateredToday) {
         return
     }
 
     let frequencyDays: number | undefined = undefined
-    const updatedPlant: Plant = { ...plant, datetimes: [...plant.datetimes, todayDateTime] }
+    const updatedPlant: Omit<Plant, 'shouldBeWatered'> = {
+        ...plant,
+        datetimes: [...plant.datetimes, todayDateTime]
+    }
 
     // regenerate recommendation when logged date is different from recommended date
     if (plant.nextWateringDate) {
