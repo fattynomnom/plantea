@@ -71,14 +71,11 @@ export const genAi = async (prompt: string) => {
 // #endregion
 
 // #region database
-interface BaseAppModelType {
+interface UpdateAppModelType {
     id: string
 }
 
-export interface CollectionConfig<
-    AppModelType extends BaseAppModelType,
-    DbModelType extends DocumentData
-> {
+export interface CollectionConfig<AppModelType extends object, DbModelType extends DocumentData> {
     paths: string[]
     converter: FirestoreDataConverter<AppModelType, DbModelType>
 }
@@ -90,7 +87,7 @@ const getBasePath = (): [Firestore, string, string] | null => {
     return user ? [firestore, 'users', user.uid] : null
 }
 
-const getCollectionRef = <AppModelType extends BaseAppModelType, DbModelType extends DocumentData>({
+const getCollectionRef = <AppModelType extends object, DbModelType extends DocumentData>({
     paths,
     converter
 }: CollectionConfig<AppModelType, DbModelType>) => {
@@ -99,7 +96,7 @@ const getCollectionRef = <AppModelType extends BaseAppModelType, DbModelType ext
 }
 
 export const fetchCollection = async <
-    AppModelType extends BaseAppModelType,
+    AppModelType extends object,
     DbModelType extends DocumentData
 >(
     collectionConfig: CollectionConfig<AppModelType, DbModelType>,
@@ -120,10 +117,7 @@ export const fetchCollection = async <
     return items
 }
 
-export const createDoc = async <
-    AppModelType extends BaseAppModelType,
-    DbModelType extends DocumentData
->(
+export const createDoc = async <AppModelType extends object, DbModelType extends DocumentData>(
     collectionConfig: CollectionConfig<AppModelType, DbModelType>,
     data: Omit<AppModelType, 'id'>
 ): Promise<void> => {
@@ -134,7 +128,7 @@ export const createDoc = async <
 }
 
 export const updateDoc = async <
-    AppModelType extends BaseAppModelType,
+    AppModelType extends UpdateAppModelType,
     DbModelType extends DocumentData
 >(
     { paths, converter }: CollectionConfig<AppModelType, DbModelType>,

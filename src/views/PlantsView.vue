@@ -13,14 +13,12 @@
                     :key="plant.id"
                     :class="{
                         'px-4 py-2 bg-white shadow-lg rounded-2xl flex flex-col justify-center': true,
-                        'opacity-50': isPlantWateredToday(plant)
+                        'opacity-50': plant.isWateredToday
                     }"
                     @click="onWaterPlantClick(plant)"
                 >
                     <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
-                    <span>
-                        {{ plant.name }} {{ isPlantWateredToday(plant) ? '(WATERED)' : '' }}
-                    </span>
+                    <span> {{ plant.name }} {{ plant.isWateredToday ? '(WATERED)' : '' }} </span>
                 </li>
             </ul>
 
@@ -110,10 +108,10 @@ import { computed, ref } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import {
     markPlantWatered,
-    isPlantWateredToday,
     type Plant,
     genPlantAnalysis,
-    updatePlant
+    updatePlant,
+    type UpdatePlantInput
 } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { Accordion, AccordionContent, AccordionHeader, AccordionPanel, Skeleton } from 'primevue'
@@ -148,16 +146,20 @@ const onWaterPlantClick = async (plant: Plant) => {
     }
 }
 
-const onGenerateClick = async (plant: Plant) => {
+const onGenerateClick = async (plant: UpdatePlantInput) => {
     isGenerating.value = true
 
     try {
         const frequencyDays = await genPlantAnalysis(plant)
-        await updatePlant({
-            ...plant,
-            frequencyDays
-        })
-        await invalidatePlantsQuery()
+
+        // only update if generated recommendation is different from existing recommendation
+        if (frequencyDays !== plant.frequencyDays) {
+            await updatePlant({
+                ...plant,
+                frequencyDays
+            })
+            await invalidatePlantsQuery()
+        }
     } catch {
         displayGenericError()
     } finally {

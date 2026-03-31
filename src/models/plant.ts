@@ -20,6 +20,7 @@ export interface Plant {
     area?: string
     frequencyDays?: number
     nextWateringDate?: Dayjs
+    isWateredToday: boolean
 }
 
 interface DbPlant {
@@ -31,10 +32,14 @@ interface DbPlant {
 
 export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays'>
 
-export type UpdatePlantInput = Omit<Plant, 'nextWateringDate'>
+export type UpdatePlantInput = Pick<Plant, 'id' | 'name' | 'datetimes' | 'area' | 'frequencyDays'>
 
 // #region firebase functions
 const PLANT_PATHS = ['plants']
+
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+const todayDateTime = today.getTime()
 
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
     toFirestore: (plant: WithFieldValue<AddPlantInput>): DbPlant => ({
@@ -48,6 +53,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
         const data = snapshot.data()
         const datetimes = data.dates.map(({ seconds }) => seconds * 1000).sort((a, b) => b - a)
+        const isWateredToday = datetimes.includes(todayDateTime)
 
         return {
             id: snapshot.id,
@@ -58,7 +64,8 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
             nextWateringDate:
                 datetimes[0] && data.frequencyDays
                     ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
-                    : undefined
+                    : undefined,
+            isWateredToday
         }
     }
 }
@@ -70,21 +77,15 @@ const plantCollectionConfig: CollectionConfig<Plant, DbPlant> = {
 
 export const fetchPlants = () => fetchCollection(plantCollectionConfig)
 
-export const createPlant = (data: AddPlantInput) => createDoc(plantCollectionConfig, data)
+export const createPlant = (data: AddPlantInput) =>
+    createDoc<AddPlantInput, DbPlant>(plantCollectionConfig, data)
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
-const today = new Date()
-today.setHours(0, 0, 0, 0)
-const todayDateTime = today.getTime()
-
-export const isPlantWateredToday = (plant: Pick<Plant, 'datetimes'>) =>
-    plant.datetimes.includes(todayDateTime)
-
 export const markPlantWatered = async (plant: Plant) => {
-    if (isPlantWateredToday(plant)) {
+    if (plant.isWateredToday) {
         return
     }
 
@@ -124,7 +125,9 @@ export const updatePlantWithRecommendation = async (
     await updatePlant({ ...updatedPlant, frequencyDays })
 }
 
-export const genPlantAnalysis = async (plant: UpdatePlantInput): Promise<number> => {
+export const genPlantAnalysis = async (
+    plant: Pick<Plant, 'name' | 'datetimes'>
+): Promise<number> => {
     const prompt = `The following is the user's inputted plant name and their logged historical watering dates.
 Plant name: ${plant.name}
 Dates: ${plant.datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY')).join(', ')}

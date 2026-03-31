@@ -1,7 +1,7 @@
 import { reactive, ref } from 'vue'
 import { type Plant } from '@/models/plant'
 
-interface PlantInput extends Omit<Plant, 'id' | 'datetimes' | 'nextWateringDate'> {
+interface PlantInput extends Pick<Plant, 'name' | 'area'> {
     id?: string
     dates: Array<Date | null>
 }
@@ -12,19 +12,17 @@ const plant = reactive<PlantInput>({
     id: undefined,
     name: '',
     dates: [],
-    area: undefined,
-    frequencyDays: undefined
+    area: undefined
 })
 
 const originalDatetimes = ref<Plant['datetimes']>()
 
 export const usePlantsDrawer = () => {
-    const editPlant = (data: Plant) => {
+    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes'>) => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.map(datetime => new Date(datetime))
         plant.area = data.area
-        plant.frequencyDays = data.frequencyDays
 
         originalDatetimes.value = data.datetimes
 
@@ -36,7 +34,6 @@ export const usePlantsDrawer = () => {
         plant.name = ''
         plant.dates = []
         plant.area = undefined
-        plant.frequencyDays = undefined
 
         originalDatetimes.value = undefined
     }
