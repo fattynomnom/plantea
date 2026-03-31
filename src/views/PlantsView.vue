@@ -9,13 +9,14 @@
 
             <ul v-else-if="hasPlants" class="grid grid-cols-2 gap-3">
                 <li
-                    v-for="plant in plants"
+                    v-for="(plant, index) in plants"
                     :key="plant.id"
                     :class="{
                         'px-4 py-2 bg-white shadow-lg rounded-2xl flex items-center space-x-2': true,
-                        'opacity-50': plant.isWateredToday
+                        'opacity-50': plant.isWateredToday || isWateringLoading[index],
+                        'animate-pulse': isWateringLoading[index]
                     }"
-                    @click="onWaterPlantClick(plant)"
+                    @click="onWaterPlantClick(plant, index)"
                 >
                     <div class="flex flex-col justify-center">
                         <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
@@ -118,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import {
     markPlantWatered,
@@ -150,13 +151,19 @@ const isLoading = computed(() => user.value === undefined || plants.value === un
 
 const isGenerating = ref(false)
 
-const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>) => {
+const isWateringLoading = ref<boolean[]>([])
+
+const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: number) => {
+    isWateringLoading.value[index] = true
+
     try {
         await markPlantWatered(plant)
         await invalidatePlantsQuery()
     } catch (error) {
         console.log(Error, error)
         displayGenericError()
+    } finally {
+        isWateringLoading.value[index] = false
     }
 }
 
@@ -180,6 +187,10 @@ const onGenerateClick = async (plant: UpdatePlantInput) => {
         isGenerating.value = false
     }
 }
+
+watch(plants, value => {
+    isWateringLoading.value = Array.from({ length: value?.length ?? 0 }, () => false)
+})
 </script>
 
 <style scoped>
