@@ -68,7 +68,7 @@
             </div>
 
             <div class="flex justify-end">
-                <CustomButton type="submit">
+                <CustomButton type="submit" :is-loading="isLoading">
                     <span>{{ plant.id ? 'Update' : 'Create' }}</span>
                     <ArrowRightCircleIcon />
                 </CustomButton>
@@ -108,6 +108,7 @@ const filteredAreas = computed(() =>
 )
 
 const error = ref('')
+const isLoading = ref(false)
 
 const onSubmit = async () => {
     error.value = ''
@@ -128,6 +129,8 @@ const onSubmit = async () => {
         error.value = 'Plant name is already being used'
         return
     }
+
+    isLoading.value = true
 
     try {
         const validDatetimes = (plant.dates.filter(date => Boolean(date)) as Date[]).map(date =>
@@ -156,11 +159,13 @@ const onSubmit = async () => {
 
         await invalidatePlantsQuery()
 
+        resetPlant()
+
         visible.value = false
     } catch {
         displayGenericError()
     } finally {
-        resetPlant()
+        isLoading.value = false
     }
 }
 
