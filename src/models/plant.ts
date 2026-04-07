@@ -135,7 +135,7 @@ export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) =>
         return
     }
 
-    let frequencyDays: number | undefined = undefined
+    let frequencyDays: number | undefined = plant.frequencyDays
     const updatedPlant: Omit<Plant, 'shouldBeWatered'> = {
         ...plant,
         datetimes: [...plant.datetimes, todayDateTime]
