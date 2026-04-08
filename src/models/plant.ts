@@ -196,4 +196,27 @@ Some things to consider:
 
     return days
 }
+
+export const getPlantsToWaterOnDate = (plants: Plant[], date: Date) => {
+    date.setHours(0, 0, 0, 0)
+    const datetime = date.getTime()
+
+    return plants.reduce<Plant[]>((acc, plant) => {
+        let nextWateringDatetime = plant.nextWateringDate?.toDate().getTime()
+        if (nextWateringDatetime && plant.frequencyDays) {
+            while (nextWateringDatetime < datetime) {
+                nextWateringDatetime = dayjs(nextWateringDatetime)
+                    .add(plant.frequencyDays, 'days')
+                    .toDate()
+                    .getTime()
+            }
+
+            if (nextWateringDatetime === datetime) {
+                return [...acc, plant]
+            }
+        }
+
+        return acc
+    }, [])
+}
 // #endregion

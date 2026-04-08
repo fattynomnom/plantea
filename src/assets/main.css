@@ -277,8 +277,8 @@ div[data-pc-name='drawer'] div[data-pc-section='title'] {
     font-family: var(--font-accent);
 }
 
-div[data-pc-name='drawer'] div[data-pc-section='content'] {
-    @apply !px-7;
+.p-drawer-content {
+    @apply p-0 !important;
 }
 /* #endregion */
 
@@ -391,5 +391,40 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 .p-autocomplete-option {
     color: var(--font-color) !important;
     @apply bg-white !important;
+}
+/* #endregion */
+
+/* #region PrimeVue date picker */
+.p-datepicker-panel,
+.p-datepicker-header {
+    @apply bg-transparent !important;
+}
+
+.p-datepicker-panel button,
+.p-datepicker-weekday,
+.p-datepicker-day {
+    color: var(--color-primary) !important;
+}
+
+.p-datepicker-panel {
+    @apply border-none py-0 overflow-hidden !important;
+}
+
+.p-datepicker-today > .p-datepicker-day {
+    border-color: var(--color-primary) !important;
+    @apply bg-transparent !important;
+}
+
+.p-datepicker-calendar-container {
+    @apply w-full overflow-hidden !important;
+}
+
+.p-datepicker-header {
+    @apply border-none !important;
+}
+
+.p-datepicker-day-selected {
+    background-color: var(--color-primary) !important;
+    @apply text-white !important;
 }
 /* #endregion */

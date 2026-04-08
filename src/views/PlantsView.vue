@@ -1,35 +1,32 @@
 <template>
     <main class="h-full space-y-7">
         <div class="space-y-3">
+            <h2>Quick actions</h2>
+
+            <CustomButton class="w-full" @click="isPlantsDrawerVisible = true">
+                <PlusIcon />
+                <span>Add plant</span>
+            </CustomButton>
+
+            <CustomButton class="w-full" @click="isPredictionOpen = true">
+                <SparklesIcon />
+                <span>Generate future predictions</span>
+            </CustomButton>
+        </div>
+
+        <div class="space-y-3">
             <h2>Which plants have you watered today?</h2>
 
             <div v-if="isLoading" class="grid grid-cols-2 gap-3">
                 <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
             </div>
 
-            <ul v-else-if="hasPlants" class="grid grid-cols-2 gap-3">
-                <li
-                    v-for="(plant, index) in plants"
-                    :key="plant.id"
-                    :class="{
-                        'px-4 py-2 bg-white shadow-lg rounded-2xl flex items-center space-x-2': true,
-                        'opacity-50': plant.isWateredToday || isWateringLoading[index],
-                        'animate-pulse': isWateringLoading[index]
-                    }"
-                    @click="onWaterPlantClick(plant, index)"
-                >
-                    <div class="flex flex-col justify-center">
-                        <small class="text-xs uppercase font-bold">{{ plant.area }}</small>
-                        <span>
-                            {{ plant.name }} {{ plant.isWateredToday ? '(WATERED)' : '' }}
-                        </span>
-                    </div>
-                    <ExclamationCircleIcon
-                        v-if="plant.shouldBeWatered"
-                        class="flex-shrink-0 w-5 h-5 color-danger"
-                    />
-                </li>
-            </ul>
+            <PlantCardList
+                v-else-if="hasPlants"
+                :plants="plants"
+                :is-loading="isWateringLoading"
+                @click="onWaterPlantClick"
+            />
 
             <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
@@ -116,11 +113,14 @@
             <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
     </main>
+
+    <PredictionDrawer v-model:visible="isPredictionOpen" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
+import PlantCardList from '@/components/PlantCardList.vue'
 import {
     markPlantWatered,
     type Plant,
@@ -134,8 +134,14 @@ import dayjs from 'dayjs'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 import CustomButton from '@/components/CustomButton.vue'
-import { ExclamationCircleIcon, PencilSquareIcon, SparklesIcon } from '@heroicons/vue/24/outline'
+import {
+    ExclamationCircleIcon,
+    PencilSquareIcon,
+    SparklesIcon,
+    PlusIcon
+} from '@heroicons/vue/24/outline'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
+import PredictionDrawer from '@/components/PredictionDrawer.vue'
 
 const { user } = useFirebaseUser()
 
@@ -152,6 +158,8 @@ const isLoading = computed(() => user.value === undefined || plants.value === un
 const isGenerating = ref(false)
 
 const isWateringLoading = ref<boolean[]>([])
+
+const isPredictionOpen = ref(false)
 
 const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: number) => {
     isWateringLoading.value[index] = true

@@ -1,23 +1,13 @@
 <template>
-    <div class="relative h-full">
-        <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
-            <div class="flex justify-between items-center">
-                <Logo class="h-10 w-10" />
-                <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
-            </div>
-
-            <div class="flex-1">
-                <RouterView />
-            </div>
+    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
+        <div class="flex justify-between items-center">
+            <Logo class="h-10 w-10" />
+            <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
-        <CustomButton
-            v-if="user"
-            class="fixed bottom-7 right-7 shadow-2xl !rounded-full ml-auto"
-            @click="isPlantsDrawerVisible = true"
-        >
-            <PlusIcon />
-        </CustomButton>
+        <div class="flex-1">
+            <RouterView />
+        </div>
     </div>
 
     <CustomDrawer v-model:visible="isMenuOpen">
@@ -41,13 +31,11 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { firebaseAuth, signOut } from './modules/firebase'
 import { useToast } from 'primevue'
 import Logo from '@/assets/logo.svg?component'
-import { ArrowLeftStartOnRectangleIcon, Bars3Icon, PlusIcon } from '@heroicons/vue/24/outline'
+import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
-import CustomButton from './components/CustomButton.vue'
 import PlantsDrawer from './components/PlantsDrawer.vue'
-import { usePlantsDrawer } from './composables/usePlantsDrawer'
 
 const route = useRoute()
 const router = useRouter()
@@ -55,8 +43,6 @@ const router = useRouter()
 const toast = useToast()
 
 const { user } = useFirebaseUser()
-
-const { isPlantsDrawerVisible } = usePlantsDrawer()
 
 const isMenuOpen = ref(false)
 

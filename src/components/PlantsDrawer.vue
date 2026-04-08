@@ -1,6 +1,6 @@
 <template>
     <Drawer v-model:visible="visible" header="Add new plant" position="bottom">
-        <form class="space-y-7" @submit.prevent="onSubmit">
+        <form class="space-y-7 px-7 pb-7" @submit.prevent="onSubmit">
             <div class="space-y-5">
                 <div class="flex flex-col space-y-2">
                     <label for="name-input">Name</label>
@@ -46,7 +46,7 @@
                             <DatePicker
                                 v-model="plant.dates[index]"
                                 dateFormat="dd/mm/yy"
-                                placeholder="dd/mm/yyyy"
+                                placeholder="DD/MM/YYYY"
                                 class="w-full"
                                 :show-on-focus="false"
                             />
