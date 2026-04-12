@@ -8,12 +8,19 @@ import { ToastService } from 'primevue'
 import Lara from '@primeuix/themes/lara'
 import Tooltip from 'primevue/tooltip'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import { experimental_createQueryPersister } from '@tanstack/query-persist-client-core'
 
 const app = createApp(App)
+
+const persister = experimental_createQueryPersister({
+    storage: window.localStorage
+})
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000
+            staleTime: Infinity,
+            persister: persister.persisterFn
         }
     }
 })

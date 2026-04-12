@@ -57,7 +57,11 @@ const onSubmit = () => {
     }
 
     try {
-        plantsToWater.value = getPlantsToWaterOnDate(plants.value ?? [], date.value)
+        const allPlants = [
+            ...(plants.value?.plantsWithSetup ?? []),
+            ...(plants.value?.singlePlants ?? [])
+        ]
+        plantsToWater.value = getPlantsToWaterOnDate(allPlants, date.value)
     } catch (error) {
         console.log('Error generating predictions', error)
         displayGenericError()

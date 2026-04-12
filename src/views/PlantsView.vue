@@ -12,6 +12,11 @@
                 <SparklesIcon />
                 <span>Generate future predictions</span>
             </CustomButton>
+
+            <CustomButton class="w-full" @click="isPredictionOpen = true">
+                <SparklesIcon />
+                <span>Add setup</span>
+            </CustomButton>
         </div>
 
         <div class="space-y-3">
@@ -21,12 +26,20 @@
                 <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
             </div>
 
-            <PlantCardList
-                v-else-if="hasPlants"
-                :plants="plants"
-                :is-loading="isWateringLoading"
-                @click="onWaterPlantClick"
-            />
+            <template v-else-if="hasPlants">
+                <PlantSetup
+                    v-for="setup in setups"
+                    :key="setup.id"
+                    :image="{ name: setup.imgName }"
+                    :plants="setup.plants"
+                />
+
+                <PlantCardList
+                    :plants="plants?.singlePlants"
+                    :is-loading="isWateringLoading"
+                    @click="onWaterPlantClick"
+                />
+            </template>
 
             <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
@@ -45,7 +58,7 @@
 
             <Accordion v-else-if="hasPlants" value="0" lazy>
                 <AccordionPanel
-                    v-for="plant in plants"
+                    v-for="plant in plants?.singlePlants"
                     :key="`accordion-item-${plant.id}`"
                     :value="plant.id"
                 >
@@ -142,6 +155,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
 import PredictionDrawer from '@/components/PredictionDrawer.vue'
+import { useSetupsQuery } from '@/composables/useSetupsQuery'
+import PlantSetup from '@/components/PlantSetup.vue'
 
 const { user } = useFirebaseUser()
 
@@ -149,16 +164,20 @@ const { isPlantsDrawerVisible, editPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
+const { data: setups } = useSetupsQuery()
+
 const { displayGenericError } = useToast()
 
-const hasPlants = computed(() => Boolean(plants.value?.length))
+const hasPlants = computed(() =>
+    Boolean(plants.value?.singlePlants.length || plants.value?.plantsWithSetup.length)
+)
 
-const isLoading = computed(() => user.value === undefined || plants.value === undefined)
+const isLoading = computed(
+    () => user.value === undefined || plants.value === undefined || setups.value === undefined
+)
 
 const isGenerating = ref(false)
-
 const isWateringLoading = ref<boolean[]>([])
-
 const isPredictionOpen = ref(false)
 
 const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: number) => {
@@ -168,7 +187,7 @@ const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: n
         await markPlantWatered(plant)
         await invalidatePlantsQuery()
     } catch (error) {
-        console.log(Error, error)
+        console.log('Error', error)
         displayGenericError()
     } finally {
         isWateringLoading.value[index] = false
@@ -196,9 +215,12 @@ const onGenerateClick = async (plant: UpdatePlantInput) => {
     }
 }
 
-watch(plants, value => {
-    isWateringLoading.value = Array.from({ length: value?.length ?? 0 }, () => false)
-})
+watch(
+    () => plants.value?.singlePlants,
+    value => {
+        isWateringLoading.value = Array.from({ length: value?.length ?? 0 }, () => false)
+    }
+)
 </script>
 
 <style scoped>

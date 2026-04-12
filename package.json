@@ -20,7 +20,8 @@
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
         "@primeuix/themes": "^2.0.3",
-        "@tanstack/vue-query": "^5.95.2",
+        "@tanstack/query-persist-client-core": "^5.99.0",
+        "@tanstack/vue-query": "^5.99.0",
         "@vueform/toggle": "^2.1.4",
         "@vueuse/core": "^12.8.2",
         "dayjs": "^1.11.20",

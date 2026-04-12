@@ -46,28 +46,14 @@
 
                     <div class="flex-1">
                         <Transition :name="isNextClicked ? 'slide-left' : 'slide-right'">
-                            <div :key="selectedImgIndex" v-if="selectedImg" class="relative">
-                                <img
-                                    ref="image"
-                                    :alt="selectedImg.file.name"
-                                    :src="selectedImg.file.objectURL"
-                                    width="200"
-                                    height="200"
-                                    class="w-full cursor-pointer rounded-2xl"
-                                    @click="onImgClick($event)"
-                                />
-                                <PlantIndicator
-                                    v-for="(plant, plantIndex) in selectedImg.plants"
-                                    :key="plant.name + plantIndex"
-                                    :color="plant.color"
-                                    class="absolute cursor-pointer hover:scale-150 transition ease-in-out duration-300"
-                                    :style="{
-                                        left: `${plant.position.x}px`,
-                                        top: `${plant.position.y}px`,
-                                        transform: `scale(${selectedIndicatorIndex === plantIndex ? 2.5 : 1})`
-                                    }"
-                                />
-                            </div>
+                            <PlantSetup
+                                :key="selectedImgIndex"
+                                v-if="selectedImg"
+                                :image="selectedImg.file"
+                                :plants="selectedImg.plants"
+                                :enlarged-indicator-index="selectedIndicatorIndex"
+                                @imgClick="onImgClick"
+                            />
                         </Transition>
 
                         <div v-if="selectedImg" class="py-4 grid grid-cols-2 gap-3">
@@ -118,7 +104,8 @@
 <script setup lang="ts">
 import { ArrowRightCircleIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, ref, useTemplateRef } from 'vue'
+import PlantSetup from '@/components/PlantSetup.vue'
+import { computed, ref } from 'vue'
 import { InputText } from 'primevue'
 import ImageUpload from '@/components/ImageUpload.vue'
 import PlantIndicator from '@/components/PlantIndicator.vue'
@@ -126,8 +113,10 @@ import FilesList from '@/components/FilesList.vue'
 import { useRouter } from 'vue-router'
 import { uploadAndCreateSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
+import { useSetupsQuery } from '@/composables/useSetupsQuery'
+import { getColorFromIndex } from '@/utils/colors.utils'
 
-interface Image {
+interface PlantSetupImage {
     file: File & { objectURL: string }
     plants: Array<{
         position: {
@@ -140,13 +129,15 @@ interface Image {
 }
 
 interface FormData {
-    images: Image[]
+    images: PlantSetupImage[]
     area: string
 }
 
 const router = useRouter()
 
 const { displayGenericError } = useToast()
+
+const { invalidateSetupsQuery } = useSetupsQuery()
 
 const stepperValue = ref('1')
 const formData = ref<FormData>({ images: [], area: '' })
@@ -157,7 +148,7 @@ const uploadProgressPercent = ref(0)
 
 const selectedImg = computed({
     get: () => formData.value.images[selectedImgIndex.value],
-    set: (value: Image) => {
+    set: (value: PlantSetupImage) => {
         formData.value.images[selectedImgIndex.value] = value
     }
 })
@@ -200,49 +191,29 @@ const onFilesUpdated = (newFiles: File[]) => {
 // #endregion
 
 // #region identifying plants in img
-const colors = [
-    'red',
-    'orange',
-    'amber',
-    'lime',
-    'green',
-    'cyan',
-    'blue',
-    'indigo',
-    'purple',
-    'fuchsia',
-    'pink',
-    'rose'
-]
-const imageRef = useTemplateRef('image')
+const onImgClick = (event: PointerEvent, imgPosition?: { left: number; top: number }) => {
+    if (!imgPosition) {
+        return
+    }
 
-const onImgClick = (event: PointerEvent) => {
-    const containerRect = imageRef.value?.getBoundingClientRect()
-    if (containerRect) {
-        const PLANT_INDICATOR_WIDTH = 14
-        const halfWidth = PLANT_INDICATOR_WIDTH / 2
-        const x = event.clientX - containerRect.left - halfWidth
-        const y = event.clientY - containerRect.top - halfWidth
+    const PLANT_INDICATOR_WIDTH = 14
+    const halfWidth = PLANT_INDICATOR_WIDTH / 2
+    const x = event.clientX - imgPosition.left - halfWidth
+    const y = event.clientY - imgPosition.top - halfWidth
 
-        const plantIndex = selectedImg.value?.plants.length
+    const plantIndex = selectedImg.value?.plants.length
 
-        if (typeof plantIndex === 'number' && selectedImg.value) {
-            const colorIndex =
-                plantIndex >= colors.length
-                    ? Math.floor(plantIndex / colors.length) - 1
-                    : plantIndex
-            const color = colors[colorIndex < 0 ? 0 : colorIndex]
+    if (typeof plantIndex === 'number' && selectedImg.value) {
+        const color = getColorFromIndex(plantIndex)
+        if (color) {
+            const image = { ...selectedImg.value }
+            image.plants.push({
+                position: { x, y },
+                name: '',
+                color
+            })
 
-            if (color) {
-                const image = { ...selectedImg.value }
-                image.plants.push({
-                    position: { x, y },
-                    name: '',
-                    color
-                })
-
-                selectedImg.value = image
-            }
+            selectedImg.value = image
         }
     }
 }
@@ -304,10 +275,15 @@ const onSubmit = () => {
                 { area: formData.value.area },
                 plants.map(({ position, name }) => ({ name, position, datetimes: [] })),
                 progressPercent => {
+                    // TODO: Display loading state
                     uploadProgressPercent.value = progressPercent / formData.value.images.length
                 },
                 () => {
                     isLoading.value = false
+
+                    invalidateSetupsQuery()
+
+                    router.push('/')
                 }
             )
         )

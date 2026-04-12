@@ -4,7 +4,8 @@ import {
     updateDoc,
     type CollectionConfig,
     genAi,
-    batchSetDocs
+    batchUpdateDocs,
+    batchCreateDocs
 } from '@/modules/firebase'
 import dayjs, { Dayjs } from 'dayjs'
 import {
@@ -114,8 +115,11 @@ export const createPlant = (data: AddPlantInput) =>
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
 
-export const batchSetPlants = (data: UpdatePlantInput[] | AddPlantInput[]) =>
-    batchSetDocs(plantCollectionConfig, data)
+export const batchCreatePlants = (data: AddPlantInput[]) =>
+    batchCreateDocs<AddPlantInput, DbPlant>(plantCollectionConfig, data)
+
+export const batchUpdatePlants = (data: UpdatePlantInput[]) =>
+    batchUpdateDocs(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
@@ -136,7 +140,7 @@ export const fetchAndPurgePlants = async () => {
         console.log('Purged plants', purgedPlants)
 
         if (purgedPlants.length) {
-            await batchSetPlants(purgedPlants)
+            await batchUpdatePlants(purgedPlants)
         }
     } catch (error) {
         console.log('Error purging plants', error)

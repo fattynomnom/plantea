@@ -1,31 +1,31 @@
-import { createDoc, type CollectionConfig, uploadFile } from '@/modules/firebase'
+import { createDoc, type CollectionConfig, uploadFile, fetchCollection } from '@/modules/firebase'
 import {
     QueryDocumentSnapshot,
     type FirestoreDataConverter,
     type WithFieldValue
 } from 'firebase/firestore/lite'
-import { type AddPlantInput, batchSetPlants, type PlantSetup } from './plant'
+import { batchCreatePlants, type AddPlantInput, type PlantSetup } from './plant'
 
 export interface Setup {
     id: string
-    imgId: string
+    imgName: string
     area?: string
 }
 
 interface DbSetup {
     id?: string
-    imgId: string
+    imgName: string
     area?: string
 }
 
-type AddSetupInput = Pick<Setup, 'imgId' | 'area'>
+type AddSetupInput = Pick<Setup, 'imgName' | 'area'>
 
 // #region firebase functions
 const SETUP_PATHS = ['setups']
 
 const setupConverter: FirestoreDataConverter<Setup, DbSetup> = {
     toFirestore: (setup: WithFieldValue<Omit<Setup, 'id'>>): DbSetup => ({
-        imgId: setup.imgId as string,
+        imgName: setup.imgName as string,
         ...(setup.area && { area: setup.area as string })
     }),
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbSetup>): Setup => {
@@ -33,7 +33,7 @@ const setupConverter: FirestoreDataConverter<Setup, DbSetup> = {
 
         return {
             id: snapshot.id,
-            imgId: data.imgId,
+            imgName: data.imgName,
             area: data.area
         }
     }
@@ -43,6 +43,8 @@ const setupCollectionConfig: CollectionConfig<Setup, DbSetup> = {
     paths: SETUP_PATHS,
     converter: setupConverter
 }
+
+export const fetchSetups = () => fetchCollection(setupCollectionConfig)
 
 const createSetup = (data: AddSetupInput) =>
     createDoc<AddSetupInput, DbSetup>(setupCollectionConfig, data)
@@ -60,14 +62,14 @@ export const uploadAndCreateSetup = (
     onUploading: (progressPercent: number) => void,
     onComplete: () => void
 ) =>
-    uploadFile(file, onUploading, async (_, imgId) => {
-        const setupId = await createSetup({ imgId, area: setup.area })
+    uploadFile(file, onUploading, async (_, imgName) => {
+        const setupId = await createSetup({ imgName, area: setup.area })
 
         const plantsWithImage = plants.map(({ position, ...plant }) => ({
             ...plant,
             setup: { id: setupId, position }
         }))
-        await batchSetPlants(plantsWithImage)
+        await batchCreatePlants(plantsWithImage)
 
         onComplete()
     })

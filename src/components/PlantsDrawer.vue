@@ -87,19 +87,25 @@ import { createPlant, updatePlantWithRecommendation } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
+import { useSetupsQuery } from '@/composables/useSetupsQuery'
 
 const { isPlantsDrawerVisible: visible, plant, originalDatetimes, resetPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
+const { data: setups } = useSetupsQuery()
+
 const { displayGenericError } = useToast()
 
-const existingAreas = computed(
-    () =>
-        [
-            ...new Set(plants.value?.map(({ area }) => area).filter(area => Boolean(area)) ?? [])
-        ] as string[]
-)
+const existingAreas = computed(() => {
+    const singlePlantsAreas = plants.value?.singlePlants.map(({ area }) => area) ?? []
+    const setupAreas = setups.value?.map(({ area }) => area) ?? []
+    const definedAreas = singlePlantsAreas
+        .concat(setupAreas)
+        .filter(area => Boolean(area)) as string[]
+
+    return [...new Set(definedAreas)]
+})
 
 const filteredAreas = computed(() =>
     plant.area
@@ -119,9 +125,9 @@ const onSubmit = async () => {
     }
 
     const otherPlants =
-        (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value)?.filter(
-            ({ setup }) => !setup
-        ) ?? []
+        (plant.id
+            ? plants.value?.singlePlants.filter(({ id }) => id !== plant.id)
+            : plants.value?.singlePlants) ?? []
     if (
         otherPlants.some(
             ({ name, area }) =>

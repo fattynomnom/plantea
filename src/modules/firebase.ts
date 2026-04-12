@@ -7,6 +7,7 @@ import {
 } from 'firebase/auth'
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
 import {
+    type DocumentReference,
     getFirestore,
     collection,
     query,
@@ -52,7 +53,14 @@ const firebaseProvider = new GoogleAuthProvider()
 
 export const authWithPopup = () => signInWithPopup(firebaseAuth, firebaseProvider)
 
-export const getUserId = () => firebaseAuth.currentUser?.uid
+const getUserId = (): string => {
+    const id = firebaseAuth.currentUser?.uid
+    if (!id) {
+        throw new Error('No authenticated Firebase user found.')
+    }
+
+    return id
+}
 
 export const signOut = () => signOutFirebase(firebaseAuth)
 // #endregion
@@ -63,15 +71,11 @@ export const firebaseStorage = getStorage(app)
 export const uploadFile = (
     file: File,
     onUploading: (progressPercent: number) => void,
-    onComplete: (url: string, fileId: string) => void
+    onComplete: (url: string, fileName: string) => void
 ) => {
-    const user = firebaseAuth.currentUser
-    if (!user?.uid) {
-        throw new Error('No authenticated Firebase user found.')
-    }
-
-    const fileId = v4()
-    const strRef = ref(firebaseStorage, `users/${user.uid}/${fileId}.${getFileExtension(file)}`)
+    const userId = getUserId()
+    const fileName = `${v4()}.${getFileExtension(file)}`
+    const strRef = ref(firebaseStorage, `users/${userId}/${fileName}`)
 
     const uploadTask = uploadBytesResumable(strRef, file)
     uploadTask.on(
@@ -88,13 +92,22 @@ export const uploadFile = (
             try {
                 const url = await getDownloadURL(uploadTask.snapshot.ref)
                 console.log('File available at', url)
-                onComplete(url, fileId)
+                onComplete(url, fileName)
             } catch (error) {
                 console.log('Get download url error', error)
                 throw error
             }
         }
     )
+}
+
+export const getFileDownloadUrl = (fileName: string) => {
+    console.log('Fetching download URL', fileName)
+
+    const userId = getUserId()
+    const strRef = ref(firebaseStorage, `users/${userId}/${fileName}`)
+
+    return getDownloadURL(strRef)
 }
 // #endregion
 
@@ -122,14 +135,7 @@ export interface CollectionConfig<AppModelType extends object, DbModelType exten
 
 const firestore = getFirestore(app)
 
-const getBasePath = (): [Firestore, string, string] => {
-    const user = firebaseAuth.currentUser
-    if (!user) {
-        throw new Error('No logged in Firebase user found.')
-    }
-
-    return [firestore, 'users', user.uid]
-}
+const getBasePath = (): [Firestore, string, string] => [firestore, 'users', getUserId()]
 
 const getCollectionRef = <AppModelType extends object, DbModelType extends DocumentData>({
     paths,
@@ -141,11 +147,10 @@ const getCollectionRef = <AppModelType extends object, DbModelType extends Docum
 
 const getDocRef = <AppModelType extends object, DbModelType extends DocumentData>(
     { paths, converter }: CollectionConfig<AppModelType, DbModelType>,
-    docId?: string
+    docId: string
 ) => {
     const basePath = getBasePath()
-    const docPath = [...paths, ...(docId ? [docId] : [])]
-    return doc(...basePath, ...docPath).withConverter(converter)
+    return doc(...basePath, ...paths, docId).withConverter(converter)
 }
 
 export const fetchCollection = async <
@@ -191,9 +196,9 @@ export const updateDoc = async <
     await setDoc(ref, data)
 }
 
-export const batchSetDocs = async <AppModelType extends object, DbModelType extends DocumentData>(
-    collectionConfig: CollectionConfig<AppModelType, DbModelType>,
-    data: AppModelType[]
+const batchSetDocs = async <AppModelType extends object, DbModelType extends DocumentData>(
+    data: AppModelType[],
+    getDocumentRef: (docId?: string) => DocumentReference<AppModelType, DbModelType>
 ): Promise<void> => {
     if (!data.length) {
         return
@@ -201,11 +206,36 @@ export const batchSetDocs = async <AppModelType extends object, DbModelType exte
 
     const batch = writeBatch(firestore)
     data.forEach(item => {
-        const docId = 'id' in item && item.id === 'string' ? item.id : undefined
-        const docRef = getDocRef(collectionConfig, docId)
+        const docRef = getDocumentRef('id' in item && item.id === 'string' ? item.id : undefined)
         batch.set(docRef, item)
     })
 
     await batch.commit()
 }
+
+export const batchCreateDocs = async <
+    AppModelType extends object,
+    DbModelType extends DocumentData
+>(
+    collectionConfig: CollectionConfig<AppModelType, DbModelType>,
+    data: Array<Omit<AppModelType, 'id'>>
+): Promise<void> => {
+    const collectionRef = getCollectionRef(collectionConfig)
+    return batchSetDocs(data, () => doc(collectionRef))
+}
+
+export const batchUpdateDocs = async <
+    AppModelType extends UpdateAppModelType,
+    DbModelType extends DocumentData
+>(
+    collectionConfig: CollectionConfig<AppModelType, DbModelType>,
+    data: AppModelType[]
+): Promise<void> =>
+    batchSetDocs(data, docId => {
+        if (!docId) {
+            throw new Error('Document ID is required for batchUpdateDocs.')
+        }
+
+        return getDocRef(collectionConfig, docId)
+    })
 // #endregion
