@@ -3,7 +3,6 @@ import { useFirebaseUser } from './useFirebaseUser'
 import { computed } from 'vue'
 import { fetchSetups } from '@/models/setup'
 import { usePlantsQuery } from './usePlantsQuery'
-import { getColorFromIndex } from '@/utils/colors.utils'
 
 const setupsQueryKey = ['setups']
 
@@ -39,7 +38,6 @@ export const useSetupsQuery = () => {
                             .filter(plant => plant.setup.id === setup.id)
                             .map(({ setup, ...plant }, index) => ({
                                 ...plant,
-                                color: getColorFromIndex(index) ?? 'red',
                                 position: setup.position
                             })) ?? []
                 }))

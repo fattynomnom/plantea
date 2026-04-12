@@ -46,14 +46,29 @@
 
                     <div class="flex-1">
                         <Transition :name="isNextClicked ? 'slide-left' : 'slide-right'">
-                            <PlantSetup
-                                :key="selectedImgIndex"
-                                v-if="selectedImg"
-                                :image="selectedImg.file"
-                                :plants="selectedImg.plants"
-                                :enlarged-indicator-index="selectedIndicatorIndex"
-                                @imgClick="onImgClick"
-                            />
+                            <div v-if="selectedImg" class="relative">
+                                <img
+                                    ref="image"
+                                    :alt="selectedImg.file.name"
+                                    :src="selectedImg.file.objectURL"
+                                    width="200"
+                                    height="200"
+                                    class="w-full cursor-pointer rounded-2xl"
+                                    @click="onImgClick($event)"
+                                />
+
+                                <PlantIndicator
+                                    v-for="(plant, plantIndex) in selectedImg.plants"
+                                    :key="plant.name + plantIndex"
+                                    :color="plant.color"
+                                    class="absolute cursor-pointer hover:scale-150 transition ease-in-out duration-300"
+                                    :style="{
+                                        left: `${plant.position.x}px`,
+                                        top: `${plant.position.y}px`,
+                                        transform: `scale(${selectedIndicatorIndex === plantIndex ? 2.5 : 1})`
+                                    }"
+                                />
+                            </div>
                         </Transition>
 
                         <div v-if="selectedImg" class="py-4 grid grid-cols-2 gap-3">
@@ -104,8 +119,7 @@
 <script setup lang="ts">
 import { ArrowRightCircleIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import PlantSetup from '@/components/PlantSetup.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { InputText } from 'primevue'
 import ImageUpload from '@/components/ImageUpload.vue'
 import PlantIndicator from '@/components/PlantIndicator.vue'
@@ -191,7 +205,10 @@ const onFilesUpdated = (newFiles: File[]) => {
 // #endregion
 
 // #region identifying plants in img
-const onImgClick = (event: PointerEvent, imgPosition?: { left: number; top: number }) => {
+const imageRef = useTemplateRef('image')
+
+const onImgClick = (event: PointerEvent) => {
+    const imgPosition = imageRef.value?.getBoundingClientRect()
     if (!imgPosition) {
         return
     }

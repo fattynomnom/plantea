@@ -3,14 +3,12 @@ import { useFirebaseUser } from './useFirebaseUser'
 import { computed, type ComputedRef, type Ref } from 'vue'
 import { getFileDownloadUrl } from '@/modules/firebase'
 
-export const useDownloadUrlQuery = (
-    fileName: Ref<string | undefined> | ComputedRef<string | undefined>
-) => {
+export const useDownloadUrlQuery = (fileName: string) => {
     const { user } = useFirebaseUser()
 
     return useQuery({
-        queryKey: ['download-url', fileName.value],
-        enabled: computed(() => Boolean(user.value && fileName.value)),
-        queryFn: () => getFileDownloadUrl(fileName.value!)
+        queryKey: ['download-url', fileName],
+        enabled: computed(() => Boolean(user.value)),
+        queryFn: () => getFileDownloadUrl(fileName)
     })
 }

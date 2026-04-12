@@ -2,59 +2,60 @@
     <div class="relative">
         <img
             ref="image"
-            :alt="image.name"
-            :src="image.objectURL ?? downloadUrl"
+            :alt="imageName"
+            :src="downloadUrl"
             width="200"
             height="200"
-            class="w-full cursor-pointer rounded-2xl"
-            @click="$emit('imgClick', $event, imageRef?.getBoundingClientRect())"
+            class="w-full cursor-pointer rounded-2xl shadow-lg"
         />
-        <PlantIndicator
+
+        <div
             v-for="(plant, plantIndex) in plants"
             :key="plant.name + plantIndex"
-            :color="plant.color"
-            class="absolute cursor-pointer hover:scale-150 transition ease-in-out duration-300"
-            :style="{
-                left: `${plant.position.x}px`,
-                top: `${plant.position.y}px`,
-                transform: `scale(${enlargedIndicatorIndex === plantIndex ? 2.5 : 1})`
+            :class="{
+                'absolute rounded-full border border-white outline outline-offset-2 outline-white h-[50px] w-[50px] flex flex-col justify-center': true,
+                'overflow-hidden': plant.isWateredToday
             }"
-        />
+            :style="{
+                left: `${plant.position.x - 25}px`,
+                top: `${plant.position.y - 25}px`
+            }"
+        >
+            <template v-if="plant.isWateredToday">
+                <div
+                    class="bg-white h-full w-full absolute left-0 right-0 top-0 bottom-0 opacity-30"
+                />
+                <CheckIcon class="text-white h-8 w-8 m-auto" />
+            </template>
+            <div
+                v-else-if="plant.shouldBeWatered"
+                class="absolute bg-green-900 -bottom-2 -right-2 rounded-full"
+            >
+                <ExclamationCircleIcon class="text-white h-6 w-6" />
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue'
-import PlantIndicator from './PlantIndicator.vue'
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
-
-interface Image {
-    name: string
-    objectURL?: string
-}
+import { CheckIcon } from '@heroicons/vue/24/outline'
+import { ExclamationCircleIcon } from '@heroicons/vue/24/solid'
 
 interface Plant {
     position: {
         x: number
         y: number
     }
-    color: string
     name: string
+    isWateredToday: boolean
+    shouldBeWatered: boolean
 }
 
-const { image, plants, enlargedIndicatorIndex } = defineProps<{
-    image: Image
+const { imageName, plants } = defineProps<{
+    imageName: string
     plants: Plant[]
-    enlargedIndicatorIndex?: number
 }>()
 
-defineEmits<{
-    (e: 'imgClick', event: PointerEvent, imgPosition?: { left: number; top: number }): void
-}>()
-
-const imageRef = useTemplateRef('image')
-
-const queryFileName = computed(() => (image.objectURL ? undefined : image.name))
-
-const { data: downloadUrl } = useDownloadUrlQuery(queryFileName)
+const { data: downloadUrl } = useDownloadUrlQuery(imageName)
 </script>
