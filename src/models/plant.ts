@@ -4,7 +4,7 @@ import {
     updateDoc,
     type CollectionConfig,
     genAi,
-    batchUpdateDocs
+    batchSetDocs
 } from '@/modules/firebase'
 import dayjs, { Dayjs } from 'dayjs'
 import {
@@ -14,12 +14,21 @@ import {
     type WithFieldValue
 } from 'firebase/firestore/lite'
 
+export interface PlantSetup {
+    id: string
+    position: {
+        x: number
+        y: number
+    }
+}
+
 export interface Plant {
     id: string
     name: string
     datetimes: number[]
     area?: string
     frequencyDays?: number
+    setup?: PlantSetup
     nextWateringDate?: Dayjs
     isWateredToday: boolean
     shouldBeWatered: boolean
@@ -30,11 +39,15 @@ interface DbPlant {
     dates: Timestamp[]
     area?: string
     frequencyDays?: number
+    image?: PlantSetup
 }
 
-export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays'>
+export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'>
 
-export type UpdatePlantInput = Pick<Plant, 'id' | 'name' | 'datetimes' | 'area' | 'frequencyDays'>
+export type UpdatePlantInput = Pick<
+    Plant,
+    'id' | 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'
+>
 
 // #region firebase functions
 const PLANT_PATHS = ['plants']
@@ -61,7 +74,8 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         ...(plant.area && { area: plant.area as string }),
         ...(typeof plant.frequencyDays === 'number' && {
             frequencyDays: plant.frequencyDays as number
-        })
+        }),
+        ...(plant.setup && { image: plant.setup as PlantSetup })
     }),
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
         const data = snapshot.data()
@@ -80,6 +94,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
             datetimes,
             area: data.area,
             frequencyDays: data.frequencyDays,
+            setup: data.image,
             nextWateringDate,
             isWateredToday,
             shouldBeWatered: shouldBeWatered(nextWateringDate)
@@ -99,8 +114,8 @@ export const createPlant = (data: AddPlantInput) =>
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
 
-export const batchUpdatePlants = (data: UpdatePlantInput[]) =>
-    batchUpdateDocs(plantCollectionConfig, data)
+export const batchSetPlants = (data: UpdatePlantInput[] | AddPlantInput[]) =>
+    batchSetDocs(plantCollectionConfig, data)
 // #endregion
 
 // #region logical functions
@@ -121,7 +136,7 @@ export const fetchAndPurgePlants = async () => {
         console.log('Purged plants', purgedPlants)
 
         if (purgedPlants.length) {
-            await batchUpdatePlants(purgedPlants)
+            await batchSetPlants(purgedPlants)
         }
     } catch (error) {
         console.log('Error purging plants', error)

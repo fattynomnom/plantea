@@ -4,7 +4,7 @@
         :data-variant="variant"
         :data-color="color"
         :data-loading="isLoading"
-        :disabled="isDisabled"
+        :disabled="isLoading || isDisabled"
         @click="onClick"
     >
         <slot />
@@ -20,7 +20,7 @@ const {
     isDisabled = false
 } = defineProps<{
     type?: 'button' | 'submit'
-    variant?: 'primary' | 'link'
+    variant?: 'primary' | 'link' | 'outline'
     color?: 'primary' | 'danger'
     isLoading?: boolean
     isDisabled?: boolean
@@ -49,6 +49,14 @@ button {
     @apply text-sm transition-colors flex justify-center font-semibold rounded-2xl space-x-2;
 }
 
+button:has(span:first-child) {
+    @apply pl-4;
+}
+
+button:has(span:last-child) {
+    @apply pr-4;
+}
+
 button[disabled] {
     @apply opacity-50;
 }
@@ -60,6 +68,12 @@ button[data-loading='true'] {
 button[data-variant='primary'] {
     background-color: var(--color-primary);
     @apply text-white p-3 uppercase;
+}
+
+button[data-variant='outline'] {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    @apply p-3 uppercase border;
 }
 
 button[data-variant='link'] {

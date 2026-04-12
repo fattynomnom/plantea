@@ -7,7 +7,7 @@
                     <input
                         id="name-input"
                         v-model.trim="plant.name"
-                        text="text"
+                        type="text"
                         name="Name"
                         autocomplete="off"
                         placeholder="Name of plant"
@@ -119,7 +119,9 @@ const onSubmit = async () => {
     }
 
     const otherPlants =
-        (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value) ?? []
+        (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value)?.filter(
+            ({ setup }) => !setup
+        ) ?? []
     if (
         otherPlants.some(
             ({ name, area }) =>

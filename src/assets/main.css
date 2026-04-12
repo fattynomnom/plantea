@@ -131,9 +131,6 @@
     --color-primary: var(--color-green-800);
     --color-danger: var(--color-red-900);
 
-    --p-stepper-separator-background: var(--color-gray-700) !important;
-    --p-fileupload-border-color: var(--color-gray-700) !important;
-    --p-inputtext-border-color: var(--color-gray-700) !important;
     --p-tooltip-background: var(--color-gray-950) !important;
 }
 
@@ -177,7 +174,8 @@ h2 {
 }
 
 h3 {
-    @apply font-semibold text-gray-500;
+    font-family: var(--font-accent);
+    @apply font-semibold text-lg;
 }
 
 small {
@@ -192,8 +190,12 @@ label {
     @apply text-sm;
 }
 
-.bg-color-primary {
+.bg-color-default {
     background-color: var(--bg-color);
+}
+
+.bg-color-primary {
+    background-color: var(--color-primary);
 }
 
 .color-primary {
@@ -292,15 +294,16 @@ div[data-pc-name='stepper'] div[data-pc-name='step']:not(:first-child) {
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='number'][data-p*='active'] {
-    @apply bg-indigo-500 border-0;
+    background-color: var(--color-primary) !important;
+    @apply border-0;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='number'] {
-    @apply bg-gray-950 border-0 text-sm min-w-7 h-7;
+    @apply border-0 text-sm min-w-7 h-7 !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='separator'][data-p*='completed'] {
-    @apply bg-indigo-500;
+    background-color: var(--color-primary) !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='separator'] {
@@ -308,7 +311,11 @@ div[data-pc-name='stepper'] span[data-pc-section='separator'] {
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='title'][data-p*='active'] {
-    @apply text-indigo-500;
+    color: var(--color-primary) !important;
+}
+
+.p-step-number {
+    @apply text-white !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='title'] {
@@ -318,15 +325,19 @@ div[data-pc-name='stepper'] span[data-pc-section='title'] {
 div[data-pc-name='stepper'] div[data-pc-name='steppanel'] {
     @apply bg-transparent;
 }
+
+.p-step-title {
+    @apply text-gray-800 !important;
+}
 /* #endregion */
 
 /* #region PrimeVue FileUpload */
-div[data-pc-name='fileupload'] {
-    @apply bg-transparent rounded-2xl;
+.p-fileupload-advanced {
+    @apply bg-white rounded-2xl border-none !important;
 }
 
 div[data-pc-name='fileupload'] div[data-pc-section='header'] {
-    @apply bg-transparent border-0 pt-16 pb-3;
+    @apply bg-transparent border-0 pt-16 pb-5;
 }
 
 div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='header'] {
@@ -334,7 +345,7 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='h
 }
 
 div[data-pc-name='fileupload'] div[data-pc-section='content'] {
-    @apply pb-16 pt-0;
+    @apply pb-14 pt-0 px-7 !important;
 }
 
 div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='content'] {
@@ -345,6 +356,10 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 /* #region PrimeVue InputText */
 .p-inputtext {
     @apply rounded-2xl text-inherit bg-white text-sm font-normal px-5 py-3 border-0 !important;
+}
+
+.p-inputtext[data-size='small'] {
+    @apply px-3 !important;
 }
 /* #endregion */
 

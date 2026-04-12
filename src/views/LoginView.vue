@@ -1,6 +1,6 @@
 <template>
     <div
-        class="w-full h-full flex flex-col items-center justify-between px-10 py-16 bg-color-primary"
+        class="w-full h-full flex flex-col items-center justify-between px-10 py-16 bg-color-default"
     >
         <div />
 
@@ -30,7 +30,7 @@ const displayPopup = async () => {
         await authWithPopup()
         router.push('/')
     } catch (error) {
-        console.log(error)
+        console.log('Error', error)
         displayGenericError()
     }
 }
