@@ -7,7 +7,7 @@ const plantsQueryKey = ['plants']
 
 type SinglePlant = Omit<Plant, 'setup'>
 
-type PlantWithSetup = Omit<Plant, 'setup'> & Required<Pick<Plant, 'setup'>>
+export type PlantWithSetup = Omit<Plant, 'setup'> & Required<Pick<Plant, 'setup'>>
 
 export const usePlantsQuery = () => {
     const { user } = useFirebaseUser()

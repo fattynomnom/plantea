@@ -13,38 +13,34 @@ export const useSetupsQuery = () => {
 
     const queryClient = useQueryClient()
 
-    return {
-        ...useQuery({
-            queryKey: setupsQueryKey,
-            enabled: computed(() => Boolean(user.value && plants.value)),
-            queryFn: async () => {
-                const setups = await fetchSetups()
+    const { data, ...queryResults } = useQuery({
+        queryKey: setupsQueryKey,
+        enabled: computed(() => Boolean(user.value && plants.value)),
+        queryFn: async () => {
+            const setups = await fetchSetups()
 
-                setups.sort((a, b) => {
-                    if (a.area && b.area) {
-                        const areaCmp = a.area.localeCompare(b.area)
-                        if (areaCmp !== 0) {
-                            return areaCmp
-                        }
+            return setups.sort((a, b) => {
+                if (a.area && b.area) {
+                    const areaCmp = a.area.localeCompare(b.area)
+                    if (areaCmp !== 0) {
+                        return areaCmp
                     }
+                }
 
-                    return a.id.localeCompare(b.id)
-                })
+                return a.id.localeCompare(b.id)
+            })
+        }
+    })
 
-                const promises = setups.map(async setup => ({
-                    ...setup,
-                    plants:
-                        plants.value?.plantsWithSetup
-                            .filter(plant => plant.setup.id === setup.id)
-                            .map(({ setup, ...plant }, index) => ({
-                                ...plant,
-                                position: setup.position
-                            })) ?? []
-                }))
-
-                return Promise.all(promises)
-            }
-        }),
+    return {
+        ...queryResults,
+        data: computed(() =>
+            data.value?.map(setup => ({
+                ...setup,
+                plants:
+                    plants.value?.plantsWithSetup.filter(plant => plant.setup.id === setup.id) ?? []
+            }))
+        ),
         invalidateSetupsQuery: async () => {
             // invalidate and wait for plants query to load because this query is dependant on that query
             await invalidatePlantsQuery()

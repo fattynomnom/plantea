@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/vue-query'
 import { useFirebaseUser } from './useFirebaseUser'
-import { computed, type ComputedRef, type Ref } from 'vue'
+import { computed } from 'vue'
 import { getFileDownloadUrl } from '@/modules/firebase'
 
 export const useDownloadUrlQuery = (fileName: string) => {
