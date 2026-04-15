@@ -1,5 +1,5 @@
 <template>
-    <main class="h-full space-y-7">
+    <main class="h-full space-y-7 px-7 pb-7 overflow-y-scroll">
         <div class="space-y-3">
             <h2>Quick actions</h2>
 

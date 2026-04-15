@@ -179,7 +179,7 @@ h3 {
 }
 
 small {
-    @apply text-sm;
+    @apply text-sm leading-none;
 }
 
 a {

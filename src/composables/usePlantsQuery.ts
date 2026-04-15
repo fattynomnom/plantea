@@ -9,6 +9,12 @@ type SinglePlant = Omit<Plant, 'setup'>
 
 export type PlantWithSetup = Omit<Plant, 'setup'> & Required<Pick<Plant, 'setup'>>
 
+interface Data {
+    singlePlants: SinglePlant[]
+    plantsWithSetup: PlantWithSetup[]
+    areas: string[]
+}
+
 export const usePlantsQuery = () => {
     const { user } = useFirebaseUser()
 
@@ -21,20 +27,15 @@ export const usePlantsQuery = () => {
             queryFn: async () => {
                 const plants = await fetchAndPurgePlants()
 
-                const [singlePlants, plantsWithSetup] = plants.reduce<
-                    [SinglePlant[], PlantWithSetup[]]
-                >(
-                    ([accSinglePlants, accPlantsWithSetup], plant) => {
-                        if (plant.setup) {
-                            return [
-                                accSinglePlants,
-                                accPlantsWithSetup.concat({ ...plant, setup: plant.setup })
-                            ]
-                        }
-
-                        return [accSinglePlants.concat(plant), accPlantsWithSetup]
-                    },
-                    [[], []]
+                const { singlePlants, plantsWithSetup, areas } = plants.reduce<Data>(
+                    (acc, { setup, ...plant }) => ({
+                        singlePlants: setup ? acc.singlePlants : acc.singlePlants.concat(plant),
+                        plantsWithSetup: setup
+                            ? acc.plantsWithSetup.concat({ ...plant, setup })
+                            : acc.plantsWithSetup,
+                        areas: plant.area ? acc.areas.concat(plant.area) : acc.areas
+                    }),
+                    { singlePlants: [], plantsWithSetup: [], areas: [] }
                 )
 
                 singlePlants.sort((a, b) => {
@@ -50,7 +51,8 @@ export const usePlantsQuery = () => {
 
                 return {
                     singlePlants,
-                    plantsWithSetup
+                    plantsWithSetup,
+                    areas: [...new Set(areas)]
                 }
             }
         }),

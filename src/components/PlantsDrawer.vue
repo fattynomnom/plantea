@@ -18,11 +18,8 @@
 
                 <div class="flex flex-col space-y-2">
                     <label for="name-input">Area (optional)</label>
-                    <AutoComplete
-                        v-model.trim="plant.area"
-                        :suggestions="filteredAreas"
-                        fluid
-                        show-clear
+                    <AreaAutocomplete
+                        v-model="plant.area"
                         placeholder="Area which the plant is located in"
                     />
                 </div>
@@ -81,37 +78,19 @@
 import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
-import { computed, ref, watch } from 'vue'
-import { AutoComplete, DatePicker } from 'primevue'
+import { ref, watch } from 'vue'
+import { DatePicker } from 'primevue'
 import { createPlant, updatePlantWithRecommendation } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
-import { useSetupsQuery } from '@/composables/useSetupsQuery'
+import AreaAutocomplete from './AreaAutocomplete.vue'
 
 const { isPlantsDrawerVisible: visible, plant, originalDatetimes, resetPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
-const { data: setups } = useSetupsQuery()
-
 const { displayGenericError } = useToast()
-
-const existingAreas = computed(() => {
-    const singlePlantsAreas = plants.value?.singlePlants.map(({ area }) => area) ?? []
-    const setupAreas = setups.value?.map(({ area }) => area) ?? []
-    const definedAreas = singlePlantsAreas
-        .concat(setupAreas)
-        .filter(area => Boolean(area)) as string[]
-
-    return [...new Set(definedAreas)]
-})
-
-const filteredAreas = computed(() =>
-    plant.area
-        ? existingAreas.value.filter(area => area.toLowerCase().includes(plant.area!.toLowerCase()))
-        : existingAreas.value
-)
 
 const error = ref('')
 const isLoading = ref(false)

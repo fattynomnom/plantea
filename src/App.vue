@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
-        <div class="flex justify-between items-center">
+    <div class="flex flex-col h-screen overflow-y-hidden transition-colors">
+        <div class="flex justify-between items-center p-7">
             <Logo class="h-10 w-10" />
             <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
-        <div class="flex-1">
+        <div class="flex-1 flex flex-col overflow-y-hidden">
             <RouterView />
         </div>
     </div>
