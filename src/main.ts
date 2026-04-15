@@ -36,3 +36,5 @@ app.use(router)
     .directive('tooltip', Tooltip)
 
 app.mount('#app')
+
+window.__TANSTACK_QUERY_CLIENT__ = queryClient
