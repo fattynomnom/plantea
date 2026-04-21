@@ -1,7 +1,7 @@
 import { reactive, ref } from 'vue'
 import { type Plant } from '@/models/plant'
 
-interface PlantInput extends Pick<Plant, 'name' | 'area'> {
+export interface PlantInput extends Pick<Plant, 'name' | 'area'> {
     id?: string
     dates: Array<Date | null>
 }

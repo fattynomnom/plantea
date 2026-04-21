@@ -20,8 +20,6 @@
     </CustomDrawer>
 
     <Toast />
-
-    <PlantsDrawer />
 </template>
 
 <script setup lang="ts">
@@ -35,7 +33,6 @@ import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outl
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
-import PlantsDrawer from './components/PlantsDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -18,7 +18,10 @@
                 </div>
             </div>
 
-            <div v-else class="flex-1 space-y-4 flex flex-col overflow-y-scroll px-7 pb-7">
+            <div
+                v-else
+                class="flex-1 space-y-4 flex flex-col overflow-y-scroll overflow-x-hidden px-7 pb-7"
+            >
                 <div class="space-y-1">
                     <h2>Identify plants</h2>
                     <div>
@@ -74,30 +77,55 @@
                     </Transition>
 
                     <div v-if="selectedImg" class="py-4 space-y-3">
-                        <TransitionGroup name="slide-left">
+                        <TransitionGroup name="instant-slide-left">
                             <div
                                 v-for="(plant, plantIndex) in selectedImg.plants"
                                 :key="`${plant.position.x}-${plant.position.y}-${plantIndex}`"
-                                class="flex space-x-2 items-center"
+                                class="flex space-x-3 items-center"
                             >
-                                <PlantIndicator :color="plant.color" />
-                                <input
-                                    :id="`plant-${plantIndex}`"
-                                    :placeholder="`Plant ${plantIndex + 1}`"
-                                    v-model.trim="plant.name"
-                                    type="text"
-                                    name="Name"
-                                    autocomplete="off"
-                                    data-size="small"
-                                    class="p-inputtext w-full"
-                                    @focus="selectedIndicatorIndex = plantIndex"
-                                />
+                                <div class="flex-1 flex space-x-2 items-center">
+                                    <PlantIndicator :color="plant.color" />
+                                    <input
+                                        :id="`plant-${plantIndex}`"
+                                        :placeholder="`Plant ${plantIndex + 1}`"
+                                        v-model.trim="plant.name"
+                                        type="text"
+                                        name="Name"
+                                        autocomplete="off"
+                                        data-size="small"
+                                        class="p-inputtext w-full"
+                                        @focus="selectedIndicatorIndex = plantIndex"
+                                    />
+                                </div>
+
+                                <CustomButton
+                                    variant="link"
+                                    @click="
+                                        selectedPlant = {
+                                            name: plant.name,
+                                            dates: [null]
+                                        }
+                                    "
+                                >
+                                    <CalendarDaysIcon />
+                                </CustomButton>
+
+                                <CustomButton variant="link">
+                                    <TrashIcon />
+                                </CustomButton>
                             </div>
                         </TransitionGroup>
                     </div>
                 </div>
             </div>
         </Transition>
+
+        <PlantsDrawer
+            v-model:visible="isDrawerVisible"
+            v-model="selectedPlant"
+            :allow-area="false"
+            title="Plant details"
+        />
     </div>
 
     <div class="flex justify-between px-7 pb-7">
@@ -116,7 +144,12 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowRightCircleIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
+import {
+    ArrowRightCircleIcon,
+    CalendarDaysIcon,
+    ChevronLeftIcon,
+    TrashIcon
+} from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import { computed, ref, useTemplateRef } from 'vue'
 import ImageUpload from '@/components/ImageUpload.vue'
@@ -129,6 +162,8 @@ import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import { getColorFromIndex } from '@/utils/colors.utils'
 import { UseDraggable } from '@vueuse/components'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
+import PlantsDrawer from '@/components/PlantsDrawer.vue'
+import type { PlantInput } from '@/composables/usePlantsDrawer'
 
 interface Plant {
     position: {
@@ -280,6 +315,19 @@ const onFileClick = (index: number) => {
     isNextClicked.value = index > selectedImgIndex.value
     selectedImgIndex.value = index
 }
+// #endregion
+
+// #region drawer
+const selectedPlant = ref<PlantInput>()
+
+const isDrawerVisible = computed({
+    get: () => Boolean(selectedPlant.value),
+    set: (value: boolean) => {
+        if (!value) {
+            selectedPlant.value = undefined
+        }
+    }
+})
 // #endregion
 
 // #region submission

@@ -7,7 +7,7 @@ import {
     batchUpdateDocs,
     batchCreateDocs
 } from '@/modules/firebase'
-import dayjs, { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
 import {
     QueryDocumentSnapshot,
     Timestamp,
@@ -30,7 +30,7 @@ export interface Plant {
     area?: string
     frequencyDays?: number
     setup?: PlantSetup
-    nextWateringDate?: Dayjs
+    nextWateringDate?: number
     isWateredToday: boolean
     shouldBeWatered: boolean
 }
@@ -62,8 +62,7 @@ const shouldBeWatered = (nextWateringDate: Plant['nextWateringDate']) => {
         return false
     }
 
-    const nextWateringDatetime = nextWateringDate.unix() * 1000
-    return nextWateringDatetime <= todayDateTime
+    return nextWateringDate <= todayDateTime
 }
 
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
@@ -84,7 +83,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         const datetimes = data.dates.map(({ seconds }) => seconds * 1000).sort((a, b) => b - a)
         const nextWateringDate =
             datetimes[0] && data.frequencyDays
-                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
+                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days').unix()
                 : undefined
 
         const isWateredToday = datetimes.includes(todayDateTime)
@@ -162,8 +161,7 @@ export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) =>
 
     // regenerate recommendation when logged date is different from recommended date
     if (plant.nextWateringDate) {
-        const nextWateringDatetime = plant.nextWateringDate.unix() * 1000
-        if (nextWateringDatetime !== todayDateTime) {
+        if (plant.nextWateringDate !== todayDateTime) {
             frequencyDays = await genPlantAnalysis(updatedPlant)
         }
     } else {
@@ -221,7 +219,7 @@ export const getPlantsToWaterOnDate = (plants: Plant[], date: Date) => {
     const datetime = date.getTime()
 
     return plants.reduce<Plant[]>((acc, plant) => {
-        let nextWateringDatetime = plant.nextWateringDate?.toDate().getTime()
+        let nextWateringDatetime = plant.nextWateringDate
         if (nextWateringDatetime && plant.frequencyDays) {
             while (nextWateringDatetime < datetime) {
                 nextWateringDatetime = dayjs(nextWateringDatetime)

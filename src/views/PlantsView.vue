@@ -113,7 +113,11 @@
                                     <br />
                                     Next watering at
                                     <strong>
-                                        {{ plant.nextWateringDate?.format('DD/MM/YYYY') }} </strong
+                                        {{
+                                            plant.nextWateringDate
+                                                ? dayjs(plant.nextWateringDate).format('DD/MM/YYYY')
+                                                : '-'
+                                        }} </strong
                                     >.
                                 </p>
                                 <p v-else>No recommendation generated yet.</p>
@@ -128,6 +132,14 @@
     </main>
 
     <PredictionDrawer v-model:visible="isPredictionOpen" />
+
+    <PlantsDrawer
+        v-model:visible="isPlantsDrawerVisible"
+        v-model="plant"
+        :original-datetimes="originalDatetimes"
+        :title="plant.id ? 'Edit plant' : 'Add new plant'"
+        @reset="resetPlant"
+    />
 </template>
 
 <script setup lang="ts">
@@ -157,10 +169,11 @@ import { useFirebaseUser } from '@/composables/useFirebaseUser'
 import PredictionDrawer from '@/components/PredictionDrawer.vue'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import PlantSetup from '@/components/PlantSetup.vue'
+import PlantsDrawer from '@/components/PlantsDrawer.vue'
 
 const { user } = useFirebaseUser()
 
-const { isPlantsDrawerVisible, editPlant } = usePlantsDrawer()
+const { isPlantsDrawerVisible, plant, originalDatetimes, resetPlant, editPlant } = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 

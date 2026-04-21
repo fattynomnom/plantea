@@ -10,7 +10,7 @@ const createPlant = (
     id,
     name: `Plant ${id}`,
     datetimes: [],
-    nextWateringDate,
+    nextWateringDate: nextWateringDate ? nextWateringDate?.unix() * 1000 : undefined,
     frequencyDays,
     isWateredToday: false,
     shouldBeWatered: false
