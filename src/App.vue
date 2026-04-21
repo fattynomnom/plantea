@@ -26,13 +26,16 @@
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import Toast from 'primevue/toast'
 import { onAuthStateChanged } from 'firebase/auth'
-import { firebaseAuth, signOut } from './modules/firebase'
+import { firebaseAuth, signOut as signOutFirebase } from './modules/firebase'
 import { useToast } from 'primevue'
 import Logo from '@/assets/logo.svg?component'
 import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
+import { usePlantsQuery } from './composables/usePlantsQuery'
+import { useSetupsQuery } from './composables/useSetupsQuery'
+import { useDownloadUrlQuery } from './composables/useDownloadUrlQuery'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,18 +44,24 @@ const toast = useToast()
 
 const { user } = useFirebaseUser()
 
+const { invalidatePlantsQuery } = usePlantsQuery()
+const { invalidateSetupsQuery } = useSetupsQuery()
+const { invalidateDownloadUrls } = useDownloadUrlQuery()
+
 const isMenuOpen = ref(false)
 
-onAuthStateChanged(firebaseAuth, fbUser => {
+onAuthStateChanged(firebaseAuth, async fbUser => {
     const goToLogin = () => {
         if (route.name !== 'login') {
             router.push('/login')
         }
     }
 
+    const allowedEmails: string[] = import.meta.env.VITE_ALLOWED_EMAILS.split(',')
+
     if (!fbUser) {
         goToLogin()
-    } else if (fbUser.email !== import.meta.env.VITE_ALLOWED_EMAIL) {
+    } else if (!allowedEmails.includes(fbUser.email ?? '')) {
         toast.add({
             severity: 'error',
             summary: 'Forbidden',
@@ -63,6 +72,7 @@ onAuthStateChanged(firebaseAuth, fbUser => {
         signOut()
         goToLogin()
     } else if (route.name === 'login') {
+        await invalidateQueries()
         router.replace('/')
     }
 })
@@ -70,5 +80,13 @@ onAuthStateChanged(firebaseAuth, fbUser => {
 const onSignOutClick = async () => {
     await signOut()
     isMenuOpen.value = false
+}
+
+const invalidateQueries = () =>
+    Promise.all([invalidatePlantsQuery(), invalidateSetupsQuery(), invalidateDownloadUrls()])
+
+const signOut = async () => {
+    await invalidateQueries()
+    signOutFirebase()
 }
 </script>
