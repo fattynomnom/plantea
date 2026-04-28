@@ -9,12 +9,7 @@
             />
 
             <div class="px-7">
-                <CustomButton
-                    type="submit"
-                    :is-loading="isLoading"
-                    :is-disabled="!date"
-                    class="w-full"
-                >
+                <CustomButton type="submit" :is-disabled="!date" class="w-full">
                     <SparklesIcon />
                     <span>Generate</span>
                 </CustomButton>
@@ -32,7 +27,7 @@
 <script setup lang="ts">
 import Drawer from 'primevue/drawer'
 import CustomButton from '@/components/CustomButton.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { SparklesIcon } from '@heroicons/vue/24/outline'
 import { DatePicker } from 'primevue'
 import dayjs from 'dayjs'
@@ -47,7 +42,6 @@ const { data: plants } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
 
-const isLoading = ref(false)
 const date = ref<Date | null>(null)
 const plantsToWater = ref<Plant[]>()
 
@@ -63,4 +57,11 @@ const onSubmit = () => {
         displayGenericError()
     }
 }
+
+watch(visible, value => {
+    if (!value) {
+        date.value = null
+        plantsToWater.value = []
+    }
+})
 </script>
