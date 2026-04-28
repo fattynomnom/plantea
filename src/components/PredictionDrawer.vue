@@ -61,7 +61,7 @@ const onSubmit = () => {
 watch(visible, value => {
     if (!value) {
         date.value = null
-        plantsToWater.value = []
+        plantsToWater.value = undefined
     }
 })
 </script>
