@@ -53,9 +53,11 @@ onAuthStateChanged(firebaseAuth, fbUser => {
         }
     }
 
+    const allowedEmails = import.meta.env.VITE_ALLOWED_EMAILS.split(',')
+
     if (!fbUser) {
         goToLogin()
-    } else if (fbUser.email !== import.meta.env.VITE_ALLOWED_EMAIL) {
+    } else if (!allowedEmails.includes(fbUser.email)) {
         toast.add({
             severity: 'error',
             summary: 'Forbidden',
