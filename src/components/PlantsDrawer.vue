@@ -13,7 +13,7 @@
                         placeholder="Name of plant"
                         class="p-inputtext"
                     />
-                    <small v-if="error" class="color-danger">{{ error }}</small>
+                    <small v-if="nameError" class="color-danger">{{ nameError }}</small>
                 </div>
 
                 <div class="flex flex-col space-y-2">
@@ -43,23 +43,30 @@
                             :key="`watering-date-${index}`"
                             class="relative"
                         >
-                            <DatePicker
-                                v-model="plant.dates[index]"
-                                dateFormat="dd/mm/yy"
+                            <input
+                                :value="plant.dates[index]"
+                                text="text"
+                                :name="`Plant date ${index}`"
+                                autocomplete="off"
                                 placeholder="DD/MM/YYYY"
-                                class="w-full"
-                                :show-on-focus="false"
+                                class="p-inputtext w-full"
+                                inputmode="numeric"
+                                maxlength="10"
+                                @input="e => onInputDate(e, index)"
                             />
                             <div
                                 class="rounded-2xl bg-white px-5 py-3 absolute right-0 top-0 color-primary"
                             >
-                                <TrashIcon class="w-5 h-5" @click="plant.dates.splice(index, 1)" />
+                                <TrashIcon class="w-5 h-5" @click="removeDate(index)" />
                             </div>
+                            <small v-if="dateErrors[index]" class="color-danger">
+                                Invalid date
+                            </small>
                         </div>
                     </div>
                 </div>
 
-                <CustomButton variant="link" @click="plant.dates.push(null)">
+                <CustomButton variant="link" @click="addDate">
                     <PlusCircleIcon />
                     <span>{{
                         plant.dates.length ? 'Add another date' : 'Add watering dates (optional)'
@@ -82,7 +89,7 @@ import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { computed, ref, watch } from 'vue'
-import { AutoComplete, DatePicker } from 'primevue'
+import { AutoComplete } from 'primevue'
 import { createPlant, updatePlantWithRecommendation } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
@@ -107,35 +114,78 @@ const filteredAreas = computed(() =>
         : existingAreas.value
 )
 
-const error = ref('')
+const nameError = ref('')
+const dateErrors = ref<boolean[]>([])
 const isLoading = ref(false)
 
+const resetErrors = () => {
+    nameError.value = ''
+    dateErrors.value = plant.dates.map(() => false)
+}
+
+const addDate = () => {
+    plant.dates.push(null)
+    dateErrors.value.push(false)
+}
+
+const removeDate = (index: number) => {
+    plant.dates.splice(index, 1)
+    dateErrors.value.splice(index, 1)
+}
+
+const onInputDate = (e: InputEvent, index: number) => {
+    const value = (e.target as HTMLInputElement).value
+
+    if (value.length === 2 || value.length === 5) {
+        plant.dates[index] = value + '/'
+        return
+    }
+
+    if (value.length > 10) {
+        return
+    }
+
+    plant.dates[index] = value
+}
+
 const onSubmit = async () => {
-    error.value = ''
+    resetErrors()
 
     if (!plant.name) {
-        error.value = 'Plant name is required.'
-        return
+        nameError.value = 'Plant name is required.'
     }
 
     const otherPlants =
         (plant.id ? plants.value?.filter(({ id }) => id !== plant.id) : plants.value) ?? []
     if (
+        !nameError.value &&
         otherPlants.some(
             ({ name, area }) =>
                 `${name}-${area}`.toLowerCase() === `${plant.name}-${plant.area}`.toLowerCase()
         )
     ) {
-        error.value = 'Plant name is already being used'
+        nameError.value = 'Plant name is already being used'
+    }
+
+    const dates = plant.dates.map(dateText => {
+        if (dateText) {
+            const [day, month, year] = dateText.split('/')
+            return new Date(`${month}/${day}/${year}`)
+        }
+
+        return null
+    })
+    console.log(0, dates)
+    dateErrors.value = dates.map(date => (date ? isNaN(date as unknown as number) : false))
+
+    if (nameError.value || dateErrors.value.some(Boolean)) {
         return
     }
 
     isLoading.value = true
 
     try {
-        const validDatetimes = (plant.dates.filter(date => Boolean(date)) as Date[]).map(date =>
-            date.getTime()
-        )
+        const validDatetimes = (dates.filter(Boolean) as Date[]).map(date => date.getTime())
 
         if (plant.id) {
             if (!originalDatetimes.value) {
@@ -173,7 +223,7 @@ watch(
     () => plant.name,
     value => {
         if (value) {
-            error.value = ''
+            resetErrors()
         }
     }
 )
