@@ -61,7 +61,7 @@ export const firebaseStorage = getStorage(app)
 
 // #region genai
 const ai = getAI(app, { backend: new GoogleAIBackend() })
-const model = getGenerativeModel(ai, { model: 'gemini-3.1-flash-lite-preview' })
+const model = getGenerativeModel(ai, { model: 'gemini-3.1-flash-lite' })
 
 export const genAi = async (prompt: string) => {
     const { response } = await model.generateContent(prompt)
