@@ -37,7 +37,7 @@
                         </CustomButton>
                     </div>
 
-                    <div v-if="existingNames" class="space-y-2 mt-3">
+                    <div v-if="hasPlants" class="space-y-2 mt-3">
                         <div class="radio-container">
                             <RadioButton
                                 v-model="isManualAddDate"
@@ -59,7 +59,7 @@
                         </div>
                     </div>
 
-                    <div v-if="isManualAddDate" class="space-y-3 mt-4">
+                    <div v-if="isManualAddDate" :class="`space-y-3 ${hasPlants ? 'mt-4' : 'mt-2'}`">
                         <div
                             id="watering-date-inputs"
                             :class="{ 'grid grid-cols-2 gap-2': plant.dates.length > 1 }"
@@ -132,64 +132,67 @@
 import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { RadioButton, Select } from 'primevue'
-import { createPlant, updatePlantWithRecommendation, type Plant } from '@/models/plant'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
-import { useToast } from '@/composables/useToast'
 import AreaAutocomplete from './AreaAutocomplete.vue'
-import type { PlantInput } from '@/composables/usePlantsDrawer'
 import dayjs from 'dayjs'
+import { convertTextToDate } from '@/utils/date.utils'
+import type { Plant } from '@/models/plant'
+
+export interface PlantInput extends Pick<Plant, 'name' | 'area'> {
+    id?: string
+    dates: Array<string | null>
+}
+
+export interface PlantOutput extends Omit<PlantInput, 'dates'> {
+    dates: Date[]
+}
 
 interface Option {
     label: string
     value: string
 }
 
+const plant = reactive<PlantInput>({
+    id: undefined,
+    name: '',
+    dates: [],
+    area: undefined
+})
+
 const visible = defineModel<boolean>('visible', { required: true })
-const plant = defineModel<PlantInput>('modelValue', {
-    default: {
+
+const {
+    allowArea = true,
+    shouldValidate = true,
+    isLoading = false,
+    title,
+    initialValue = {
         id: undefined,
         name: '',
         dates: [],
         area: undefined
     }
-})
-
-const {
-    originalDatetimes,
-    allowArea = true,
-    title
 } = defineProps<{
-    originalDatetimes?: Plant['datetimes']
     allowArea?: boolean
+    shouldValidate?: boolean
+    isLoading?: boolean
     title: string
+    initialValue?: PlantInput
 }>()
 
 const emit = defineEmits<{
-    (e: 'reset'): void
+    (e: 'submit', data: PlantOutput): Promise<void>
 }>()
 
-const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
-
-const { displayGenericError } = useToast()
-
-const isManualAddDate = ref(true)
-const nameError = ref('')
-const dateErrors = ref<boolean[]>([])
-const isLoading = ref(false)
-
-const existingNames = computed(() => {
-    const singlePlantNames = plants.value?.singlePlants.map(({ name }) => name) ?? []
-    const plantSetupNames = plants.value?.plantsWithSetup.map(({ name }) => name) ?? []
-    const names = singlePlantNames?.concat(plantSetupNames)
-
-    return [...new Set(names)]
-})
+const { data: plants } = usePlantsQuery()
 
 const allPlants = computed(
     () => plants.value?.singlePlants.concat(plants.value.plantsWithSetup) ?? []
 )
+
+const hasPlants = computed(() => allPlants.value.length > 0)
 
 const groupedPlants = computed(() => {
     const map =
@@ -208,44 +211,91 @@ const groupedPlants = computed(() => {
     }))
 })
 
+// #region errors/validation
+const nameError = ref('')
+const dateErrors = ref<boolean[]>([])
+
+const hasDateErrors = computed(() => dateErrors.value.some(Boolean))
+
+const validatePlantsData = () => {
+    if (!plant.name) {
+        nameError.value = 'Plant name is required.'
+    }
+
+    // TODO: check this validation again
+    const otherPlants =
+        (plant.id
+            ? plants.value?.singlePlants.filter(({ id }) => id !== plant.id)
+            : plants.value?.singlePlants) ?? []
+    if (
+        !nameError.value &&
+        otherPlants.some(
+            ({ name, area }) =>
+                `${name}-${area}`.toLowerCase() === `${plant.name}-${plant.area}`.toLowerCase()
+        )
+    ) {
+        nameError.value = 'Plant name is already being used'
+    }
+
+    dateErrors.value = plant.dates.map(dateText => {
+        const value = dateText?.trim()
+        if (value) {
+            const date = convertTextToDate(value)
+            return isNaN(date as unknown as number)
+        }
+
+        return false
+    })
+
+    // TODO: validate that entered dates is not in the future
+}
+
+const resetNameError = () => {
+    nameError.value = ''
+}
+
 const resetDateErrors = () => {
-    dateErrors.value = plant.value.dates.map(() => false)
+    dateErrors.value = plant.dates.map(() => false)
 }
 
 const resetErrors = () => {
-    nameError.value = ''
+    resetNameError()
     resetDateErrors()
 }
+// #endregion
+
+// #region dates
+const isManualAddDate = ref(true)
 
 const importPlantDates = ({ value: plantId }: Pick<Option, 'value'>) => {
     const datetimes = allPlants.value.find(({ id }) => id === plantId)?.datetimes
     if (datetimes) {
-        plant.value.dates = datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
+        plant.dates = datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
         isManualAddDate.value = true
         resetDateErrors()
     }
 }
 
 const addDate = () => {
-    plant.value.dates.push(null)
+    plant.dates.push(null)
     dateErrors.value.push(false)
 }
 
 const removeDate = (index: number) => {
-    plant.value.dates.splice(index, 1)
+    plant.dates.splice(index, 1)
     dateErrors.value.splice(index, 1)
 }
 
 const resetDates = () => {
-    plant.value.dates = [null]
+    plant.dates = [null]
     resetDateErrors()
 }
 
 const onInputDate = (e: InputEvent, index: number) => {
-    const value = (e.target as HTMLInputElement).value
+    const value = (e.target as HTMLInputElement).value.trim()
 
     if (value.length === 2 || value.length === 5) {
-        plant.value.dates[index] = value + '/'
+        plant.dates[index] = value + '/'
         return
     }
 
@@ -253,91 +303,63 @@ const onInputDate = (e: InputEvent, index: number) => {
         return
     }
 
-    plant.value.dates[index] = value
+    plant.dates[index] = value
 }
+// #endregion
 
 const onSubmit = async () => {
     resetErrors()
 
-    if (!plant.value.name) {
-        nameError.value = 'Plant name is required.'
+    if (shouldValidate) {
+        validatePlantsData()
+
+        if (nameError.value || hasDateErrors.value) {
+            return
+        }
     }
 
-    const otherPlants =
-        (plant.value.id
-            ? plants.value?.singlePlants.filter(({ id }) => id !== plant.value.id)
-            : plants.value?.singlePlants) ?? []
-    if (
-        !nameError.value &&
-        otherPlants.some(
-            ({ name, area }) =>
-                `${name}-${area}`.toLowerCase() ===
-                `${plant.value.name}-${plant.value.area}`.toLowerCase()
-        )
-    ) {
-        nameError.value = 'Plant name is already being used'
-    }
-
-    const dates = plant.value.dates.map(dateText => {
-        if (dateText) {
-            const [day, month, year] = dateText.split('/')
-            return new Date(`${month}/${day}/${year}`)
+    const validDatetimes = plant.dates.reduce<Date[]>((acc, dateText) => {
+        const value = dateText?.trim()
+        if (value) {
+            return acc.concat(convertTextToDate(value))
         }
 
-        return null
+        return acc
+    }, [])
+
+    await emit('submit', {
+        ...plant,
+        dates: validDatetimes
     })
-    dateErrors.value = dates.map(date => (date ? isNaN(date as unknown as number) : false))
-
-    if (nameError.value || dateErrors.value.some(Boolean)) {
-        return
-    }
-
-    isLoading.value = true
-
-    try {
-        const validDatetimes = (dates.filter(Boolean) as Date[]).map(date => date.getTime())
-
-        if (plant.value.id) {
-            if (!originalDatetimes) {
-                throw new Error('Missing original datetimes.')
-            }
-
-            await updatePlantWithRecommendation(
-                { datetimes: originalDatetimes },
-                {
-                    ...plant.value,
-                    id: plant.value.id,
-                    datetimes: validDatetimes
-                }
-            )
-        } else {
-            await createPlant({
-                ...plant.value,
-                datetimes: validDatetimes
-            })
-        }
-
-        await invalidatePlantsQuery()
-
-        emit('reset')
-
-        visible.value = false
-    } catch {
-        displayGenericError()
-    } finally {
-        isLoading.value = false
-    }
 }
 
 watch(
-    () => plant.value.name,
-    value => {
-        console.log(1, value)
-        if (value) {
-            resetErrors()
+    () => plant.name,
+    () => {
+        if (nameError.value) {
+            resetNameError()
         }
     }
 )
+
+// TODO: fix watcher not working - use react-hook-form instead
+watch(
+    () => plant.dates,
+    () => {
+        if (hasDateErrors.value) {
+            resetDateErrors()
+        }
+    }
+)
+
+watch(visible, value => {
+    if (value) {
+        plant.id = initialValue.id
+        plant.name = initialValue.name
+        plant.dates = initialValue.dates
+        plant.area = initialValue.area
+    }
+})
 </script>
 
 <style scoped>

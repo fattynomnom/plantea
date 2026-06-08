@@ -80,7 +80,7 @@
                         <TransitionGroup name="instant-slide-left">
                             <div
                                 v-for="(plant, plantIndex) in selectedImg.plants"
-                                :key="`${plant.position.x}-${plant.position.y}-${plantIndex}`"
+                                :key="`plant-input-${plantIndex}`"
                                 class="flex space-x-3 items-center"
                             >
                                 <div class="flex-1 flex space-x-2 items-center">
@@ -100,12 +100,7 @@
 
                                 <CustomButton
                                     variant="link"
-                                    @click="
-                                        selectedPlant = {
-                                            name: plant.name,
-                                            dates: [null]
-                                        }
-                                    "
+                                    @click="selectedPlantIndex = plantIndex"
                                 >
                                     <CalendarDaysIcon />
                                 </CustomButton>
@@ -119,13 +114,6 @@
                 </div>
             </div>
         </Transition>
-
-        <PlantsDrawer
-            v-model:visible="isDrawerVisible"
-            v-model="selectedPlant"
-            :allow-area="false"
-            title="Plant details"
-        />
     </div>
 
     <div class="flex justify-between px-7 pb-7">
@@ -141,6 +129,14 @@
             <ArrowRightCircleIcon />
         </CustomButton>
     </div>
+
+    <PlantsDrawer
+        v-model:visible="isDrawerVisible"
+        :initial-value="selectedPlant"
+        :allow-area="false"
+        title="Plant details"
+        @submit="onSubmitPlantDrawer"
+    />
 </template>
 
 <script setup lang="ts">
@@ -162,8 +158,8 @@ import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import { getColorFromIndex } from '@/utils/colors.utils'
 import { UseDraggable } from '@vueuse/components'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
-import PlantsDrawer from '@/components/PlantsDrawer.vue'
-import type { PlantInput } from '@/composables/usePlantsDrawer'
+import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
+import dayjs from 'dayjs'
 
 interface Plant {
     position: {
@@ -172,6 +168,7 @@ interface Plant {
     }
     color: string
     name: string
+    dates: Date[]
 }
 
 interface PlantSetupImage {
@@ -190,12 +187,9 @@ const { displayGenericError } = useToast()
 
 const { invalidateSetupsQuery } = useSetupsQuery()
 
-const stepperValue = ref('1')
 const formData = ref<FormData>({ images: [], area: '' })
 const selectedImgIndex = ref<number>(0)
 const selectedIndicatorIndex = ref<number>()
-const isLoading = ref(false)
-const uploadProgressPercent = ref(0)
 
 const selectedImg = computed({
     get: () => formData.value.images[selectedImgIndex.value],
@@ -264,7 +258,8 @@ const onImgClick = (event: PointerEvent) => {
             image.plants.push({
                 position: { x, y },
                 name: '',
-                color
+                color,
+                dates: []
             })
 
             selectedImg.value = image
@@ -275,6 +270,7 @@ const onImgClick = (event: PointerEvent) => {
 
 // #region navigation
 const isNextClicked = ref<boolean>(false)
+const stepperValue = ref('1')
 
 const onNextClick = () => {
     if (stepperValue.value === '1') {
@@ -318,19 +314,49 @@ const onFileClick = (index: number) => {
 // #endregion
 
 // #region drawer
-const selectedPlant = ref<PlantInput>()
+const selectedPlantIndex = ref<number>()
 
-const isDrawerVisible = computed({
-    get: () => Boolean(selectedPlant.value),
-    set: (value: boolean) => {
+const selectedPlant = computed<PlantInput | undefined>(() => {
+    const plant =
+        typeof selectedPlantIndex.value === 'number'
+            ? selectedImg.value?.plants[selectedPlantIndex.value]
+            : undefined
+
+    return plant
+        ? {
+              name: plant.name,
+              dates: plant.dates.length
+                  ? plant.dates.map(date => dayjs(date).format('DD/MM/YYYY'))
+                  : [null]
+          }
+        : undefined
+})
+
+const isDrawerVisible = computed<boolean>({
+    get: () => typeof selectedPlantIndex.value === 'number',
+    set: value => {
         if (!value) {
-            selectedPlant.value = undefined
+            selectedPlantIndex.value = undefined
         }
     }
 })
+
+const onSubmitPlantDrawer = (plant: PlantOutput) => {
+    if (selectedImg.value && typeof selectedPlantIndex.value === 'number') {
+        const plantData = selectedImg.value.plants[selectedPlantIndex.value]
+        if (plantData) {
+            plantData.name = plant.name
+            plantData.dates = plant.dates
+            isDrawerVisible.value = false
+        }
+    }
+}
 // #endregion
 
 // #region submission
+const isLoading = ref(false)
+const uploadProgressPercent = ref(0)
+
 const onSubmit = () => {
     isLoading.value = true
     uploadProgressPercent.value = 0

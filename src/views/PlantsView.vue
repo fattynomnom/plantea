@@ -135,10 +135,10 @@
 
     <PlantsDrawer
         v-model:visible="isPlantsDrawerVisible"
-        v-model="plant"
-        :original-datetimes="originalDatetimes"
+        :is-loading="isSubmittingPlant"
+        :initial-value="plant"
         :title="plant.id ? 'Edit plant' : 'Add new plant'"
-        @reset="resetPlant"
+        @submit="onSubmitPlantForm"
     />
 </template>
 
@@ -173,7 +173,13 @@ import PlantsDrawer from '@/components/PlantsDrawer.vue'
 
 const { user } = useFirebaseUser()
 
-const { isPlantsDrawerVisible, plant, originalDatetimes, resetPlant, editPlant } = usePlantsDrawer()
+const {
+    isPlantsDrawerVisible,
+    isLoading: isSubmittingPlant,
+    plant,
+    editPlant,
+    onSubmitPlantForm
+} = usePlantsDrawer()
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
