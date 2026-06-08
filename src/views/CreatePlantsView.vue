@@ -41,77 +41,19 @@
                     @click="onFileClick"
                 />
 
-                <div class="flex-1">
-                    <Transition :name="isNextClicked ? 'slide-left' : 'slide-right'">
-                        <div v-if="selectedImg" class="relative">
-                            <img
-                                ref="image"
-                                :alt="selectedImg.file.name"
-                                :src="selectedImg.file.objectURL"
-                                width="200"
-                                height="200"
-                                class="w-full cursor-pointer rounded-2xl"
-                                @click="onImgClick($event)"
-                            />
-
-                            <UseDraggable
-                                v-for="(plant, plantIndex) in selectedImg.plants"
-                                :key="plant.name + plantIndex"
-                                :initial-value="{
-                                    x: plant.position.x,
-                                    y: plant.position.y
-                                }"
-                                :container-element="imageRef"
-                                class="absolute"
-                                @end="position => (plant.position = position)"
-                            >
-                                <PlantIndicator
-                                    :color="plant.color"
-                                    class="cursor-pointer hover:scale-150 transition ease-in-out duration-300"
-                                    :style="{
-                                        transform: `scale(${selectedIndicatorIndex === plantIndex ? 2.5 : 1})`
-                                    }"
-                                />
-                            </UseDraggable>
-                        </div>
-                    </Transition>
-
-                    <div v-if="selectedImg" class="py-4 space-y-3">
-                        <TransitionGroup name="instant-slide-left">
-                            <div
-                                v-for="(plant, plantIndex) in selectedImg.plants"
-                                :key="`plant-input-${plantIndex}`"
-                                class="flex space-x-3 items-center"
-                            >
-                                <div class="flex-1 flex space-x-2 items-center">
-                                    <PlantIndicator :color="plant.color" />
-                                    <input
-                                        :id="`plant-${plantIndex}`"
-                                        :placeholder="`Plant ${plantIndex + 1}`"
-                                        v-model.trim="plant.name"
-                                        type="text"
-                                        name="Name"
-                                        autocomplete="off"
-                                        data-size="small"
-                                        class="p-inputtext w-full"
-                                        @focus="selectedIndicatorIndex = plantIndex"
-                                    />
-                                </div>
-
-                                <CustomButton
-                                    variant="link"
-                                    @click="selectedPlantIndex = plantIndex"
-                                >
-                                    <CalendarDaysIcon />
-                                </CustomButton>
-
-                                <CustomButton variant="link">
-                                    <TrashIcon />
-                                </CustomButton>
-                            </div>
-                        </TransitionGroup>
-                    </div>
-                </div>
+                <PlantSetupForm
+                    class="flex-1"
+                    :transition-name="isNextClicked ? 'slide-left' : 'slide-right'"
+                    :image="
+                        selectedImg
+                            ? { name: selectedImg.file.name, url: selectedImg.file.objectURL }
+                            : undefined
+                    "
+                    :plants="selectedImg?.plants"
+                    @click-indicator="addPlant"
+                    @click-calendar="plantIndex => (selectedPlantIndex = plantIndex)"
+                    @click-trash="removePlant"
+                />
             </div>
         </Transition>
     </div>
@@ -140,26 +82,19 @@
 </template>
 
 <script setup lang="ts">
-import {
-    ArrowRightCircleIcon,
-    CalendarDaysIcon,
-    ChevronLeftIcon,
-    TrashIcon
-} from '@heroicons/vue/24/outline'
+import { ArrowRightCircleIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref } from 'vue'
 import ImageUpload from '@/components/ImageUpload.vue'
-import PlantIndicator from '@/components/PlantIndicator.vue'
 import FilesList from '@/components/FilesList.vue'
 import { useRouter } from 'vue-router'
 import { uploadAndCreateSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
-import { getColorFromIndex } from '@/utils/colors.utils'
-import { UseDraggable } from '@vueuse/components'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
 import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
 import dayjs from 'dayjs'
+import PlantSetupForm from '@/components/PlantSetupForm.vue'
 
 interface Plant {
     position: {
@@ -189,11 +124,11 @@ const { invalidateSetupsQuery } = useSetupsQuery()
 
 const formData = ref<FormData>({ images: [], area: '' })
 const selectedImgIndex = ref<number>(0)
-const selectedIndicatorIndex = ref<number>()
 
 const selectedImg = computed({
     get: () => formData.value.images[selectedImgIndex.value],
     set: (value: PlantSetupImage) => {
+        console.log(2, value)
         formData.value.images[selectedImgIndex.value] = value
     }
 })
@@ -232,39 +167,6 @@ const onFilesUpdated = (newFiles: File[]) => {
             plants: existingFile?.plants ?? []
         }
     })
-}
-// #endregion
-
-// #region identifying plants in img
-const imageRef = useTemplateRef('image')
-
-const onImgClick = (event: PointerEvent) => {
-    const imgPosition = imageRef.value?.getBoundingClientRect()
-    if (!imgPosition) {
-        return
-    }
-
-    const PLANT_INDICATOR_WIDTH = 14
-    const halfWidth = PLANT_INDICATOR_WIDTH / 2
-    const x = event.clientX - imgPosition.left - halfWidth
-    const y = event.clientY - imgPosition.top - halfWidth
-
-    const plantIndex = selectedImg.value?.plants.length
-
-    if (typeof plantIndex === 'number' && selectedImg.value) {
-        const color = getColorFromIndex(plantIndex)
-        if (color) {
-            const image = { ...selectedImg.value }
-            image.plants.push({
-                position: { x, y },
-                name: '',
-                color,
-                dates: []
-            })
-
-            selectedImg.value = image
-        }
-    }
 }
 // #endregion
 
@@ -310,6 +212,29 @@ const onFileClick = (index: number) => {
 
     isNextClicked.value = index > selectedImgIndex.value
     selectedImgIndex.value = index
+}
+// #endregion
+
+// #region manage plants
+const addPlant = (data: Pick<Plant, 'position' | 'color'>) => {
+    if (selectedImg.value) {
+        selectedImg.value = {
+            ...selectedImg.value,
+            plants: [...selectedImg.value.plants, { ...data, name: '', dates: [] }]
+        }
+    }
+}
+
+const removePlant = (plantIndex: number) => {
+    if (selectedImg.value) {
+        const plants = [...selectedImg.value.plants]
+        plants.splice(plantIndex, 1)
+
+        selectedImg.value = {
+            ...selectedImg.value,
+            plants
+        }
+    }
 }
 // #endregion
 
