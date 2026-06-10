@@ -9,15 +9,20 @@ const router = createRouter({
             component: () => import('../views/PlantsView.vue')
         },
         {
+            path: '/login',
+            name: 'login',
+            meta: { title: 'Login' },
+            component: () => import('../views/LoginView.vue')
+        },
+        {
             path: '/create',
             name: 'create',
             component: () => import('../views/CreatePlantsView.vue')
         },
         {
-            path: '/login',
-            name: 'login',
-            meta: { title: 'Login' },
-            component: () => import('../views/LoginView.vue')
+            path: '/edit/:id',
+            name: 'edit',
+            component: () => import('../views/EditPlantsView.vue')
         }
     ]
 })

@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useFirebaseUser } from './useFirebaseUser'
-import { computed } from 'vue'
+import { computed, isRef, type ComputedRef } from 'vue'
 import { getFileDownloadUrl } from '@/modules/firebase'
 
-export const useDownloadUrlQuery = (fileName?: string) => {
+export const useDownloadUrlQuery = (fileName?: ComputedRef<string | undefined> | string) => {
     const { user } = useFirebaseUser()
 
     const queryClient = useQueryClient()
@@ -13,11 +13,12 @@ export const useDownloadUrlQuery = (fileName?: string) => {
             queryKey: ['download-url', fileName],
             enabled: computed(() => Boolean(user.value && fileName)),
             queryFn: () => {
-                if (!fileName) {
+                const value = isRef(fileName) ? fileName.value : fileName
+                if (!value) {
                     throw new Error('filename is required to execute useDownloadUrlQuery.')
                 }
 
-                return getFileDownloadUrl(fileName)
+                return getFileDownloadUrl(value)
             }
         }),
         invalidateDownloadUrls: () =>

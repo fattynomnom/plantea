@@ -1,7 +1,6 @@
 import { reactive, ref } from 'vue'
 import { updatePlantWithRecommendation, type Plant, createPlant } from '@/models/plant'
 import dayjs from 'dayjs'
-import { convertTextToDate } from '@/utils/date.utils'
 import { usePlantsQuery } from './usePlantsQuery'
 import { useToast } from './useToast'
 import type { PlantInput, PlantOutput } from '@/components/PlantsDrawer.vue'

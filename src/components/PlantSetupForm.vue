@@ -12,9 +12,15 @@
                     @click="onImgClick($event)"
                 />
 
+                <!-- TODO: deleting a plant causes the indicator positioning to be wrong -->
+                <!-- Eg lets say with plant A & B, if A is deleted, visually it switches to plant B position, but the data position x & y is correct -->
+                <!-- this is caused by the key name - need to find a way to keep key name consistent -->
+                <!-- cannot use name because user may identify all plants without naming them yet -->
+                <!-- cannot use index because user can delete plants and shift index -->
+                <!-- potentially look into assigning a temporary id -->
                 <UseDraggable
                     v-for="(plant, plantIndex) in plants"
-                    :key="plant.name + plantIndex"
+                    :key="plant.name"
                     :initial-value="{
                         x: plant.position.x,
                         y: plant.position.y
@@ -56,56 +62,88 @@
                         />
                     </div>
 
-                    <CustomButton variant="link" @click="$emit('click-calendar', plantIndex)">
+                    <CustomButton variant="link" @click="selectedPlantIndex = plantIndex">
                         <CalendarDaysIcon />
                     </CustomButton>
 
-                    <CustomButton variant="link" @click="$emit('click-trash', plantIndex)">
+                    <CustomButton variant="link" @click="plants.splice(plantIndex, 1)">
                         <TrashIcon />
                     </CustomButton>
                 </div>
             </TransitionGroup>
         </div>
     </div>
+
+    <PlantsDrawer
+        v-model:visible="isDrawerVisible"
+        :initial-value="selectedPlant"
+        :allow-area="false"
+        title="Plant details"
+        @submit="onSubmitPlantDrawer"
+    />
 </template>
 
 <script setup lang="ts">
 import { getColorFromIndex } from '@/utils/colors.utils'
 import { UseDraggable } from '@vueuse/components'
-import { ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import PlantIndicator from './PlantIndicator.vue'
 import CustomButton from './CustomButton.vue'
 import { CalendarDaysIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
+import dayjs from 'dayjs'
 
 interface SetupImage {
     name: string
     url: string
 }
 
-interface Plant {
+export interface PlantSetupFormData {
     position: {
         x: number
         y: number
     }
     color: string
     name: string
+    dates: Date[]
 }
 
-const { transitionName, image, plants } = defineProps<{
-    transitionName: 'slide-left' | 'slide-right'
+const { transitionName = 'slide-left', image } = defineProps<{
+    transitionName?: 'slide-left' | 'slide-right'
     image?: SetupImage
-    plants?: Plant[]
 }>()
 
-const emit = defineEmits<{
-    (e: 'click-indicator', data: Pick<Plant, 'position' | 'color'>): void
-    (e: 'click-calendar', plantIndex: number): void
-    (e: 'click-trash', plantIndex: number): void
-}>()
+const plants = defineModel<PlantSetupFormData[]>('plants', { required: true })
 
 const imageRef = useTemplateRef('image')
 
 const selectedIndicatorIndex = ref<number>()
+const selectedPlantIndex = ref<number>()
+
+const selectedPlant = computed<PlantInput | undefined>(() => {
+    const plant =
+        typeof selectedPlantIndex.value === 'number'
+            ? plants.value[selectedPlantIndex.value]
+            : undefined
+
+    return plant
+        ? {
+              name: plant.name,
+              dates: plant.dates.length
+                  ? plant.dates.map(date => dayjs(date).format('DD/MM/YYYY'))
+                  : [null]
+          }
+        : undefined
+})
+
+const isDrawerVisible = computed<boolean>({
+    get: () => typeof selectedPlantIndex.value === 'number',
+    set: value => {
+        if (!value) {
+            selectedPlantIndex.value = undefined
+        }
+    }
+})
 
 const onImgClick = (event: PointerEvent) => {
     const imgPosition = imageRef.value?.getBoundingClientRect()
@@ -118,12 +156,23 @@ const onImgClick = (event: PointerEvent) => {
     const x = event.clientX - imgPosition.left - halfWidth
     const y = event.clientY - imgPosition.top - halfWidth
 
-    const plantIndex = plants?.length
+    const plantIndex = plants.value.length
 
     if (typeof plantIndex === 'number') {
         const color = getColorFromIndex(plantIndex)
         if (color) {
-            emit('click-indicator', { position: { x, y }, color })
+            plants.value.push({ position: { x, y }, color, name: '', dates: [] })
+        }
+    }
+}
+
+const onSubmitPlantDrawer = (plant: PlantOutput) => {
+    if (typeof selectedPlantIndex.value === 'number') {
+        const plantData = plants.value[selectedPlantIndex.value]
+        if (plantData) {
+            plantData.name = plant.name
+            plantData.dates = plant.dates
+            isDrawerVisible.value = false
         }
     }
 }

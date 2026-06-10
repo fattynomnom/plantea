@@ -30,7 +30,7 @@
                 <PlantSetup
                     v-for="setup in setups"
                     :key="setup.id"
-                    :image-name="setup.imgName"
+                    :setup="setup"
                     :plants="setup.plants"
                 />
 

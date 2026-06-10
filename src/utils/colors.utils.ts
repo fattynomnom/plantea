@@ -15,5 +15,5 @@ const colors = [
 
 export const getColorFromIndex = (index: number) => {
     const colorIndex = index >= colors.length ? Math.floor(index / colors.length) - 1 : index
-    return colors[colorIndex < 0 ? 0 : colorIndex]
+    return colors[colorIndex < 0 ? 0 : colorIndex] ?? 'red'
 }

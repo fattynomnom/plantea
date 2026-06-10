@@ -49,10 +49,8 @@
                             ? { name: selectedImg.file.name, url: selectedImg.file.objectURL }
                             : undefined
                     "
-                    :plants="selectedImg?.plants"
-                    @click-indicator="addPlant"
-                    @click-calendar="plantIndex => (selectedPlantIndex = plantIndex)"
-                    @click-trash="removePlant"
+                    :plants="selectedImg?.plants ?? []"
+                    @update:plants="updatePlants"
                 />
             </div>
         </Transition>
@@ -71,14 +69,6 @@
             <ArrowRightCircleIcon />
         </CustomButton>
     </div>
-
-    <PlantsDrawer
-        v-model:visible="isDrawerVisible"
-        :initial-value="selectedPlant"
-        :allow-area="false"
-        title="Plant details"
-        @submit="onSubmitPlantDrawer"
-    />
 </template>
 
 <script setup lang="ts">
@@ -92,23 +82,11 @@ import { uploadAndCreateSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
-import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
-import dayjs from 'dayjs'
-import PlantSetupForm from '@/components/PlantSetupForm.vue'
-
-interface Plant {
-    position: {
-        x: number
-        y: number
-    }
-    color: string
-    name: string
-    dates: Date[]
-}
+import PlantSetupForm, { type PlantSetupFormData } from '@/components/PlantSetupForm.vue'
 
 interface PlantSetupImage {
     file: File & { objectURL: string }
-    plants: Plant[]
+    plants: PlantSetupFormData[]
 }
 
 interface FormData {
@@ -128,7 +106,6 @@ const selectedImgIndex = ref<number>(0)
 const selectedImg = computed({
     get: () => formData.value.images[selectedImgIndex.value],
     set: (value: PlantSetupImage) => {
-        console.log(2, value)
         formData.value.images[selectedImgIndex.value] = value
     }
 })
@@ -216,64 +193,9 @@ const onFileClick = (index: number) => {
 // #endregion
 
 // #region manage plants
-const addPlant = (data: Pick<Plant, 'position' | 'color'>) => {
+const updatePlants = (plants: PlantSetupFormData[]) => {
     if (selectedImg.value) {
-        selectedImg.value = {
-            ...selectedImg.value,
-            plants: [...selectedImg.value.plants, { ...data, name: '', dates: [] }]
-        }
-    }
-}
-
-const removePlant = (plantIndex: number) => {
-    if (selectedImg.value) {
-        const plants = [...selectedImg.value.plants]
-        plants.splice(plantIndex, 1)
-
-        selectedImg.value = {
-            ...selectedImg.value,
-            plants
-        }
-    }
-}
-// #endregion
-
-// #region drawer
-const selectedPlantIndex = ref<number>()
-
-const selectedPlant = computed<PlantInput | undefined>(() => {
-    const plant =
-        typeof selectedPlantIndex.value === 'number'
-            ? selectedImg.value?.plants[selectedPlantIndex.value]
-            : undefined
-
-    return plant
-        ? {
-              name: plant.name,
-              dates: plant.dates.length
-                  ? plant.dates.map(date => dayjs(date).format('DD/MM/YYYY'))
-                  : [null]
-          }
-        : undefined
-})
-
-const isDrawerVisible = computed<boolean>({
-    get: () => typeof selectedPlantIndex.value === 'number',
-    set: value => {
-        if (!value) {
-            selectedPlantIndex.value = undefined
-        }
-    }
-})
-
-const onSubmitPlantDrawer = (plant: PlantOutput) => {
-    if (selectedImg.value && typeof selectedPlantIndex.value === 'number') {
-        const plantData = selectedImg.value.plants[selectedPlantIndex.value]
-        if (plantData) {
-            plantData.name = plant.name
-            plantData.dates = plant.dates
-            isDrawerVisible.value = false
-        }
+        selectedImg.value.plants = plants
     }
 }
 // #endregion

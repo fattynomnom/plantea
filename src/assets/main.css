@@ -130,9 +130,8 @@
     --input-placeholder-color: var(--color-gray-400);
     --bg-color: var(--color-orange-100);
     --color-primary: var(--color-green-800);
+    --color-primary-dark: var(--color-green-950);
     --color-danger: var(--color-red-900);
-
-    --p-tooltip-background: var(--color-gray-950) !important;
 }
 
 ::-webkit-scrollbar {
@@ -188,6 +187,7 @@ a {
 }
 
 label {
+    font-family: var(--font-accent);
     @apply text-sm font-semibold;
 }
 
@@ -377,7 +377,8 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 
 /* #region PrimeVue Tooltip */
 .p-tooltip-text {
-    @apply rounded-xl text-xs bg-gray-950 !important;
+    background-color: var(--color-primary-dark) !important;
+    @apply rounded-xl text-xs !important;
 }
 /* #endregion */
 
