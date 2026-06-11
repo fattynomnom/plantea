@@ -12,15 +12,9 @@
                     @click="onImgClick($event)"
                 />
 
-                <!-- TODO: deleting a plant causes the indicator positioning to be wrong -->
-                <!-- Eg lets say with plant A & B, if A is deleted, visually it switches to plant B position, but the data position x & y is correct -->
-                <!-- this is caused by the key name - need to find a way to keep key name consistent -->
-                <!-- cannot use name because user may identify all plants without naming them yet -->
-                <!-- cannot use index because user can delete plants and shift index -->
-                <!-- potentially look into assigning a temporary id -->
                 <UseDraggable
                     v-for="(plant, plantIndex) in plants"
-                    :key="plant.name"
+                    :key="plant.id"
                     :initial-value="{
                         x: plant.position.x,
                         y: plant.position.y
@@ -72,15 +66,15 @@
                 </div>
             </TransitionGroup>
         </div>
-    </div>
 
-    <PlantsDrawer
-        v-model:visible="isDrawerVisible"
-        :initial-value="selectedPlant"
-        :allow-area="false"
-        title="Plant details"
-        @submit="onSubmitPlantDrawer"
-    />
+        <PlantsDrawer
+            v-model:visible="isDrawerVisible"
+            :initial-value="selectedPlant"
+            :allow-area="false"
+            title="Plant details"
+            @submit="onSubmitPlantDrawer"
+        />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -92,6 +86,7 @@ import CustomButton from './CustomButton.vue'
 import { CalendarDaysIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
 import dayjs from 'dayjs'
+import { v4 } from 'uuid'
 
 interface SetupImage {
     name: string
@@ -99,6 +94,7 @@ interface SetupImage {
 }
 
 export interface PlantSetupFormData {
+    id: string
     position: {
         x: number
         y: number
@@ -161,7 +157,7 @@ const onImgClick = (event: PointerEvent) => {
     if (typeof plantIndex === 'number') {
         const color = getColorFromIndex(plantIndex)
         if (color) {
-            plants.value.push({ position: { x, y }, color, name: '', dates: [] })
+            plants.value.push({ id: v4(), position: { x, y }, color, name: '', dates: [] })
         }
     }
 }

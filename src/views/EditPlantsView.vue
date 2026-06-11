@@ -94,7 +94,8 @@ watch(
             if (data) {
                 setup.value = {
                     ...data,
-                    plants: data.plants.map(({ setup, name, datetimes }, index) => ({
+                    plants: data.plants.map(({ id, setup, name, datetimes }, index) => ({
+                        id,
                         position: setup.position,
                         color: getColorFromIndex(index),
                         name,
