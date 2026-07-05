@@ -15,10 +15,10 @@ import {
     batchCreatePlants,
     type AddPlantInput,
     type PlantSetup,
-    batchUpdatePlants,
     type UpdatePlantInput,
     updatePlantsWithRecommendation
 } from './plant'
+import { v4 } from 'uuid'
 
 export interface Setup {
     id: string
@@ -67,8 +67,13 @@ const updateSetup = (data: Setup) => updateDoc<Setup, DbSetup>(setupCollectionCo
 // #endregion
 
 // #region logical functions
+interface SetupFile {
+    extension: string
+    croppedImgBlob: Blob
+}
+
 interface AddSetupInputWithFile extends Pick<AddSetupInput, 'area'> {
-    file: File
+    file: SetupFile
 }
 
 interface AddSetupPlantInput extends AddPlantInput {
@@ -76,7 +81,7 @@ interface AddSetupPlantInput extends AddPlantInput {
 }
 
 interface UpdateSetupInputWithFile extends Setup {
-    file?: File
+    replacementFile?: SetupFile
 }
 
 interface UpdateSetupPlantInput extends UpdatePlantInput {
@@ -89,8 +94,10 @@ export const uploadAndCreateSetup = (
     plants: AddSetupPlantInput[],
     onUploading: (progressPercent: number) => void,
     onComplete: () => void
-) =>
-    uploadFile(setup.file, onUploading, async (_, imgName) => {
+) => {
+    const fileName = `${v4()}.${setup.file.extension}`
+
+    return uploadFile(fileName, setup.file.croppedImgBlob, onUploading, async (_, imgName) => {
         const setupId = await createSetup({ imgName, area: setup.area })
 
         const plantsWithImage = plants.map(({ position, ...plant }) => ({
@@ -101,6 +108,7 @@ export const uploadAndCreateSetup = (
 
         onComplete()
     })
+}
 
 export const updateSetupAndPlants = async (
     setup: UpdateSetupInputWithFile,
@@ -129,11 +137,17 @@ export const updateSetupAndPlants = async (
         onComplete()
     }
 
-    if (setup.file) {
+    if (setup.replacementFile) {
         // delete previous file if there is a new file
         await deleteFile(setup.imgName)
 
-        return uploadFile(setup.file, onUploading, (_, imgName) => update(imgName))
+        const fileName = `${v4()}.${setup.replacementFile.extension}`
+        return uploadFile(
+            fileName,
+            setup.replacementFile.croppedImgBlob,
+            onUploading,
+            (_, imgName) => update(imgName)
+        )
     }
 
     return update()

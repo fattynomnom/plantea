@@ -5,7 +5,13 @@ import {
     signInWithPopup,
     signOut as signOutFirebase
 } from 'firebase/auth'
-import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
+import {
+    deleteObject,
+    getDownloadURL,
+    getStorage,
+    ref,
+    uploadBytesResumable
+} from 'firebase/storage'
 import {
     type DocumentReference,
     getFirestore,
@@ -23,8 +29,6 @@ import {
 } from '@firebase/firestore/lite'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai'
-import { getFileExtension } from '@/utils/file.utils'
-import { v4 } from 'uuid'
 
 const app = initializeApp({
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -69,12 +73,12 @@ export const signOut = () => signOutFirebase(firebaseAuth)
 export const firebaseStorage = getStorage(app)
 
 export const uploadFile = (
-    file: File,
+    fileName: string,
+    file: Blob,
     onUploading: (progressPercent: number) => void,
     onComplete: (url: string, fileName: string) => void
 ) => {
     const userId = getUserId()
-    const fileName = `${v4()}.${getFileExtension(file)}`
     const strRef = ref(firebaseStorage, `users/${userId}/${fileName}`)
 
     const uploadTask = uploadBytesResumable(strRef, file)

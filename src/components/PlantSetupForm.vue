@@ -89,7 +89,7 @@ import dayjs from 'dayjs'
 import { v4 } from 'uuid'
 
 interface SetupImage {
-    name: string
+    name?: string
     url: string
 }
 

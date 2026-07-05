@@ -21,16 +21,9 @@
                             />
                         </div>
 
-                        <CustomButton variant="link" @click="fileInputRef?.click()">
+                        <CustomButton variant="link" @click="isUploadDrawerVisible = true">
                             Replace image
                         </CustomButton>
-                        <input
-                            ref="file-input"
-                            type="file"
-                            accept="image/*"
-                            class="hidden"
-                            @change="onImageSelected"
-                        />
                     </div>
 
                     <PlantSetupForm :image="displayImage" v-model:plants="setup.plants" />
@@ -52,6 +45,8 @@
             <ArrowRightCircleIcon />
         </CustomButton>
     </div>
+
+    <UploadDrawer v-model:visible="isUploadDrawerVisible" @save="onUploadImgSave" />
 </template>
 
 <script setup lang="ts">
@@ -61,7 +56,7 @@ import {
     InformationCircleIcon
 } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { updateSetupAndPlants, type Setup as BaseSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
@@ -71,7 +66,9 @@ import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { getColorFromIndex } from '@/utils/colors.utils'
 import PlantSetupForm, { type PlantSetupFormData } from '@/components/PlantSetupForm.vue'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
+import UploadDrawer from '@/components/UploadDrawer.vue'
 import { type UpdatePlantInput } from '@/models/plant'
+import type { Image } from '@/components/ImageUpload.vue'
 
 interface PlantSetupEditFormData extends PlantSetupFormData {
     originalDatetimes: number[]
@@ -80,7 +77,11 @@ interface PlantSetupEditFormData extends PlantSetupFormData {
 
 interface Setup extends BaseSetup {
     plants: PlantSetupEditFormData[]
-    file?: File & { objectURL: string }
+    replacementFile?: {
+        extension: string
+        croppedImgBlob: Blob
+        objectURL: string
+    }
 }
 
 const route = useRoute()
@@ -99,40 +100,14 @@ const isNextDisabled = computed(() => {
     return hasNoPlants || hasUnnamedPlant
 })
 
-watch(
-    setups,
-    value => {
-        if (value && !setup.value) {
-            const data = value.find(({ id }) => route.params.id === id)
-            if (data) {
-                setup.value = {
-                    ...data,
-                    plants: data.plants.map(
-                        ({ id, setup, name, datetimes, frequencyDays }, index) => ({
-                            id,
-                            position: setup.position,
-                            color: getColorFromIndex(index),
-                            name,
-                            dates: datetimes.map(datetime => new Date(datetime)),
-                            originalDatetimes: datetimes,
-                            frequencyDays
-                        })
-                    )
-                }
-            }
-        }
-    },
-    { immediate: true }
-)
-
 // #region rendering image
 const imgName = computed(() => setup.value?.imgName)
 const { data: downloadUrl } = useDownloadUrlQuery(imgName)
 
 const displayImage = computed(() => {
-    const replacementFile = setup.value?.file
+    const replacementFile = setup.value?.replacementFile
     if (replacementFile) {
-        return { name: replacementFile.name, url: replacementFile.objectURL }
+        return { url: replacementFile.objectURL }
     }
 
     if (downloadUrl.value && setup.value) {
@@ -144,23 +119,16 @@ const displayImage = computed(() => {
 // #endregion
 
 // #region replace image
-const fileInputRef = useTemplateRef('file-input')
+const isUploadDrawerVisible = ref<boolean>(false)
 
-const onImageSelected = (event: Event) => {
-    const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-
-    if (!file || !setup.value) {
-        return
-    }
-
-    if (setup.value.file) {
-        URL.revokeObjectURL(setup.value.file.objectURL)
-    }
-
-    setup.value.file = {
-        ...file,
-        objectURL: URL.createObjectURL(file)
+const onUploadImgSave = (image: Image | null) => {
+    const setupRef = setup.value
+    if (setupRef && image) {
+        setupRef.replacementFile = {
+            croppedImgBlob: image.croppedImg.blob,
+            objectURL: image.croppedImg.objectURL,
+            extension: image.originalFile.extension
+        }
     }
 }
 // #endregion
@@ -199,4 +167,30 @@ const onSubmit = async () => {
     }
 }
 // #endregion
+
+watch(
+    setups,
+    value => {
+        if (value && !setup.value) {
+            const data = value.find(({ id }) => route.params.id === id)
+            if (data) {
+                setup.value = {
+                    ...data,
+                    plants: data.plants.map(
+                        ({ id, setup, name, datetimes, frequencyDays }, index) => ({
+                            id,
+                            position: setup.position,
+                            color: getColorFromIndex(index),
+                            name,
+                            dates: datetimes.map(datetime => new Date(datetime)),
+                            originalDatetimes: datetimes,
+                            frequencyDays
+                        })
+                    )
+                }
+            }
+        }
+    },
+    { immediate: true }
+)
 </script>

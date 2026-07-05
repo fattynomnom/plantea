@@ -49,7 +49,7 @@ const {
     size = 'default',
     selectedIndex
 } = defineProps<{
-    files?: File[]
+    files?: Blob[]
     addButton?: boolean
     size?: 'small' | 'default'
     selectedIndex?: number

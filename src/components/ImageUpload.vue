@@ -1,64 +1,103 @@
 <template>
-    <FileUpload
-        ref="file-upload"
-        name="plant-setup"
-        accept="image/*"
-        multiple
-        @select="({ files }) => $emit('update', files)"
-        @remove="({ files }) => $emit('update', files)"
+    <div
+        :class="{
+            'rounded-2xl bg-white overflow-hidden': true,
+            'py-16 px-7': !image
+        }"
     >
-        <template #header="{ files, chooseCallback }">
-            <div class="m-auto">
-                <CustomButton
-                    ref="upload-button"
-                    :class="`${files.length ? '!hidden' : ''}`"
-                    @click="chooseCallback"
-                >
-                    <PlusCircleIcon />
-                    <span>Upload file</span>
-                </CustomButton>
+        <div v-if="!image" class="flex flex-col items-center space-y-5">
+            <div>
+                <CustomButton @click="fileInputRef?.click()">Upload image</CustomButton>
             </div>
-        </template>
-        <template #content="{ files, removeFileCallback }">
-            <FilesList
-                v-if="files.length"
-                :files="files"
-                add-button
-                @remove="removeFileCallback"
-                @add="uploadButton?.onClick"
-            />
-        </template>
-        <template #empty>
-            <p class="text-xs text-gray-500 text-center">
-                Upload pictures of your plant setup to get started.
+            <p class="text-xs text-gray-500">
+                Upload a picture of your plant setup to get started.
             </p>
-        </template>
-    </FileUpload>
+        </div>
+
+        <input
+            ref="file-input"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onImageSelected"
+        />
+
+        <VueCropper
+            v-if="image"
+            ref="cropper"
+            :aspect-ratio="4 / 5"
+            :src="image.originalFile.objectURL"
+            :view-mode="1"
+            :style="{ width: '100%' }"
+            :data="image.croppedImg.data"
+        />
+    </div>
 </template>
 
 <script setup lang="ts">
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-import { FileUpload } from 'primevue'
+import { useTemplateRef } from 'vue'
+import VueCropper, { type CropperData, type VueCropperMethods } from 'vue-cropperjs'
 import CustomButton from './CustomButton.vue'
-import FilesList from './FilesList.vue'
-import { PlusCircleIcon } from '@heroicons/vue/24/outline'
-import { onMounted, useTemplateRef } from 'vue'
+import { getFileExtension } from '@/utils/file.utils'
 
-const { initialFiles = [] } = defineProps<{
-    initialFiles?: File[]
-}>()
+export interface Image {
+    originalFile: {
+        extension: string
+        objectURL: string
+    }
+    croppedImg: {
+        blob: Blob
+        objectURL: string
+        data?: CropperData
+    }
+}
 
-defineEmits<{
-    (e: 'update', files: File[]): void
-}>()
+const image = defineModel<Image>('image')
 
-const uploadButton = useTemplateRef('upload-button')
-const fileUpload = useTemplateRef('file-upload')
+const fileInputRef = useTemplateRef('file-input')
+const cropper = useTemplateRef<VueCropperMethods>('cropper')
 
-onMounted(() => {
-    if (initialFiles.length) {
-        fileUpload.value?.onFileSelect({ target: { files: initialFiles } })
+const onImageSelected = (event: Event) => {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (file) {
+        const objectURL = URL.createObjectURL(file)
+        image.value = {
+            originalFile: {
+                extension: getFileExtension(file),
+                objectURL
+            },
+            croppedImg: {
+                blob: file,
+                objectURL
+            }
+        }
+    }
+}
+
+defineExpose({
+    confirmCrop: (onCropped?: (value: Image | null) => void) => {
+        const cropperRef = cropper.value
+        const imageRef = image.value
+        if (imageRef && cropperRef) {
+            const croppedData = cropperRef.getData()
+            cropperRef
+                .getCroppedCanvas({
+                    width: 1080,
+                    height: 1350
+                })
+                .toBlob(blob => {
+                    if (blob) {
+                        const value = {
+                            blob,
+                            objectURL: URL.createObjectURL(blob),
+                            data: croppedData
+                        }
+                        imageRef.croppedImg = value
+                        onCropped?.(image.value ?? null)
+                    }
+                })
+        }
     }
 })
 </script>

@@ -5,8 +5,9 @@
                 <h2>Upload plants setup</h2>
 
                 <ImageUpload
-                    :initialFiles="formData.images.map(({ file }) => file)"
-                    @update="onFilesUpdated"
+                    ref="image-upload"
+                    :image="formData.images[0] ?? undefined"
+                    @update:image="updateImage"
                 />
 
                 <div class="flex flex-col space-y-2 mt-3">
@@ -32,21 +33,14 @@
                     </div>
                 </div>
 
-                <FilesList
-                    v-if="formData.images.length > 1"
-                    :files="formData.images.map(({ file }) => file)"
-                    size="small"
-                    :selectedIndex="selectedImgIndex"
-                    @remove="index => formData.images.splice(index, 1)"
-                    @click="onFileClick"
-                />
-
                 <PlantSetupForm
                     class="flex-1"
                     :transition-name="isNextClicked ? 'slide-left' : 'slide-right'"
                     :image="
                         selectedImg
-                            ? { name: selectedImg.file.name, url: selectedImg.file.objectURL }
+                            ? {
+                                  url: selectedImg.croppedImg.objectURL
+                              }
                             : undefined
                     "
                     :plants="selectedImg?.plants ?? []"
@@ -74,18 +68,17 @@
 <script setup lang="ts">
 import { ArrowRightCircleIcon, ChevronLeftIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, ref } from 'vue'
-import ImageUpload from '@/components/ImageUpload.vue'
-import FilesList from '@/components/FilesList.vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { uploadAndCreateSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
 import PlantSetupForm, { type PlantSetupFormData } from '@/components/PlantSetupForm.vue'
+import type { Image } from '@/components/ImageUpload.vue'
+import ImageUpload from '@/components/ImageUpload.vue'
 
-interface PlantSetupImage {
-    file: File & { objectURL: string }
+interface PlantSetupImage extends Image {
     plants: PlantSetupFormData[]
 }
 
@@ -102,6 +95,8 @@ const { invalidateSetupsQuery } = useSetupsQuery()
 
 const formData = ref<FormData>({ images: [], area: '' })
 const selectedImgIndex = ref<number>(0)
+
+const imageUpload = useTemplateRef('image-upload')
 
 const selectedImg = computed({
     get: () => formData.value.images[selectedImgIndex.value],
@@ -129,23 +124,24 @@ const isNextDisabled = computed(() =>
     stepperValue.value === '1' ? formData.value.images.length === 0 : isCreateDisabled.value
 )
 
-// #region file upload
-const onFilesUpdated = (newFiles: File[]) => {
-    formData.value.images = newFiles.map(selectedFile => {
-        const existingFile = formData.value.images.find(
-            ({ file }) =>
-                file.name === selectedFile.name &&
-                file.size === selectedFile.size &&
-                file.type === selectedFile.type
-        )
+const updateImage = (image?: Image) => {
+    if (!image) {
+        return
+    }
 
-        return {
-            file: selectedFile as File & { objectURL: string },
-            plants: existingFile?.plants ?? []
+    const firstImage = formData.value.images[0]
+    if (firstImage) {
+        formData.value.images[0] = {
+            ...firstImage,
+            ...image
         }
-    })
+    } else {
+        formData.value.images.push({
+            ...image,
+            plants: []
+        })
+    }
 }
-// #endregion
 
 // #region navigation
 const isNextClicked = ref<boolean>(false)
@@ -153,6 +149,7 @@ const stepperValue = ref('1')
 
 const onNextClick = () => {
     if (stepperValue.value === '1') {
+        imageUpload.value?.confirmCrop()
         stepperValue.value = '2'
         selectedImgIndex.value = 0
         return
@@ -181,15 +178,6 @@ const onBackClick = () => {
     selectedImgIndex.value -= 1
     isNextClicked.value = false
 }
-
-const onFileClick = (index: number) => {
-    if (index === selectedImgIndex.value) {
-        return
-    }
-
-    isNextClicked.value = index > selectedImgIndex.value
-    selectedImgIndex.value = index
-}
 // #endregion
 
 // #region manage plants
@@ -209,9 +197,15 @@ const onSubmit = () => {
     uploadProgressPercent.value = 0
 
     try {
-        formData.value.images.map(({ file, plants }) =>
+        formData.value.images.map(({ originalFile, croppedImg, plants }) =>
             uploadAndCreateSetup(
-                { file, area: formData.value.area },
+                {
+                    file: {
+                        extension: originalFile.extension,
+                        croppedImgBlob: croppedImg.blob
+                    },
+                    area: formData.value.area
+                },
                 plants.map(({ position, name, dates }) => ({
                     name,
                     position,
