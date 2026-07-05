@@ -1,10 +1,23 @@
-import { createDoc, type CollectionConfig, uploadFile, fetchCollection } from '@/modules/firebase'
+import {
+    createDoc,
+    type CollectionConfig,
+    uploadFile,
+    fetchCollection,
+    deleteFile,
+    updateDoc
+} from '@/modules/firebase'
 import {
     QueryDocumentSnapshot,
     type FirestoreDataConverter,
     type WithFieldValue
 } from 'firebase/firestore/lite'
-import { batchCreatePlants, type AddPlantInput, type PlantSetup } from './plant'
+import {
+    batchCreatePlants,
+    type AddPlantInput,
+    type PlantSetup,
+    batchUpdatePlants,
+    type UpdatePlantInput
+} from './plant'
 
 export interface Setup {
     id: string
@@ -48,21 +61,34 @@ export const fetchSetups = () => fetchCollection(setupCollectionConfig)
 
 const createSetup = (data: AddSetupInput) =>
     createDoc<AddSetupInput, DbSetup>(setupCollectionConfig, data)
+
+const updateSetup = (data: Setup) => updateDoc<Setup, DbSetup>(setupCollectionConfig, data)
 // #endregion
 
 // #region logical functions
-interface SetupPlantInput extends Omit<AddPlantInput, 'image'> {
+interface AddSetupInputWithFile extends Pick<AddSetupInput, 'area'> {
+    file: File
+}
+
+interface AddSetupPlantInput extends AddPlantInput {
+    position: PlantSetup['position']
+}
+
+interface UpdateSetupInputWithFile extends Setup {
+    file?: File
+}
+
+interface UpdateSetupPlantInput extends UpdatePlantInput {
     position: PlantSetup['position']
 }
 
 export const uploadAndCreateSetup = (
-    file: File,
-    setup: Pick<Setup, 'area'>,
-    plants: SetupPlantInput[],
+    setup: AddSetupInputWithFile,
+    plants: AddSetupPlantInput[],
     onUploading: (progressPercent: number) => void,
     onComplete: () => void
 ) =>
-    uploadFile(file, onUploading, async (_, imgName) => {
+    uploadFile(setup.file, onUploading, async (_, imgName) => {
         const setupId = await createSetup({ imgName, area: setup.area })
 
         const plantsWithImage = plants.map(({ position, ...plant }) => ({
@@ -73,4 +99,37 @@ export const uploadAndCreateSetup = (
 
         onComplete()
     })
+
+export const updateSetupAndPlants = async (
+    setup: UpdateSetupInputWithFile,
+    plants: UpdateSetupPlantInput[],
+    onUploading: (progressPercent: number) => void,
+    onComplete: () => void
+) => {
+    const update = async (uploadedImgName?: string) => {
+        await updateSetup({
+            id: setup.id,
+            imgName: uploadedImgName ?? setup.imgName,
+            area: setup.area
+        })
+
+        const plantsWithImage = plants.map(({ position, ...plant }) => ({
+            ...plant,
+            setup: { id: setup.id, position }
+        }))
+        // TODO: use originalDatetimes to see if frequency needs to be regenerated
+        await batchUpdatePlants(plantsWithImage)
+
+        onComplete()
+    }
+
+    if (setup.file) {
+        // delete previous file if there is a new file
+        await deleteFile(setup.imgName)
+
+        return uploadFile(setup.file, onUploading, (_, imgName) => update(imgName))
+    }
+
+    return update()
+}
 // #endregion

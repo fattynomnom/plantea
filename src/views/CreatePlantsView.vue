@@ -211,9 +211,12 @@ const onSubmit = () => {
     try {
         formData.value.images.map(({ file, plants }) =>
             uploadAndCreateSetup(
-                file,
-                { area: formData.value.area },
-                plants.map(({ position, name }) => ({ name, position, datetimes: [] })),
+                { file, area: formData.value.area },
+                plants.map(({ position, name, dates }) => ({
+                    name,
+                    position,
+                    datetimes: dates.map(date => date.getTime())
+                })),
                 progressPercent => {
                     // TODO: Display loading state
                     uploadProgressPercent.value = progressPercent / formData.value.images.length

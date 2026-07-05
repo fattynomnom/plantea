@@ -2,11 +2,16 @@
     <div class="relative">
         <img
             ref="image"
-            :alt="imageName"
+            :alt="setup.imgName"
             :src="downloadUrl"
             width="200"
             height="200"
             class="w-full cursor-pointer rounded-2xl shadow-lg"
+        />
+
+        <PencilSquareIcon
+            class="absolute top-4 right-4 h-7 w-7 text-white"
+            @click="$router.push(`/edit/${setup.id}`)"
         />
 
         <OnLongPress
@@ -22,18 +27,20 @@
                 top: `${plant.setup.position.y - 25}px`
             }"
             :options="{ delay: 2000 }"
-            @touchstart="onStartWatering"
-            @touchend="onCancelWatering"
+            @touchstart="onStartWatering(plant.id)"
+            @touchend="resetWatering"
             @trigger="onCompleteWatering(plant)"
         >
-            <template v-if="wateringHeightPx > 0">
+            <template
+                v-if="selectedPlantId === plant.id && wateringHeightPx > 0 && !plant.isWateredToday"
+            >
                 <div class="plant-overlay" :style="{ height: `${wateringHeightPx}px` }" />
                 <div class="flex flex-col justify-center">
                     <CustomSpinner class="mx-auto text-white h-5 w-5" />
                 </div>
             </template>
 
-            <template v-if="plant.isWateredToday">
+            <template v-else-if="plant.isWateredToday">
                 <div class="plant-overlay top-0" />
                 <CheckIcon class="text-white h-8 w-8 m-auto" />
             </template>
@@ -51,60 +58,53 @@
 <script setup lang="ts">
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { CheckIcon } from '@heroicons/vue/24/outline'
-import { ExclamationCircleIcon } from '@heroicons/vue/24/solid'
+import { ExclamationCircleIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
 import { OnLongPress } from '@vueuse/components'
 import { ref } from 'vue'
 import CustomSpinner from '@/components/CustomSpinner.vue'
 import { markPlantWatered, type Plant } from '@/models/plant'
 import { usePlantsQuery, type PlantWithSetup } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
+import type { Setup } from '@/models/setup'
 
-const { imageName, plants } = defineProps<{
-    imageName: string
+const { setup, plants } = defineProps<{
+    setup: Setup
     plants: PlantWithSetup[]
 }>()
 
-const { data: downloadUrl } = useDownloadUrlQuery(imageName)
+const { data: downloadUrl } = useDownloadUrlQuery(setup.imgName)
 
 const { invalidatePlantsQuery } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
 
 // #region watering
+const selectedPlantId = ref<string>()
 const wateringIntervalId = ref<NodeJS.Timeout>()
 const wateringHeightPx = ref(0)
-const isWatering = ref(false)
 
 const resetWatering = () => {
     clearInterval(wateringIntervalId.value)
     wateringIntervalId.value = undefined
+    selectedPlantId.value = undefined
+    wateringHeightPx.value = 0
 }
 
-const onStartWatering = () => {
+const onStartWatering = (plantId: PlantWithSetup['id']) => {
+    selectedPlantId.value = plantId
     wateringHeightPx.value = 0
     wateringIntervalId.value = setInterval(() => {
         wateringHeightPx.value += 1.25
     }, 50)
 }
 
-const onCancelWatering = () => {
-    resetWatering()
-    wateringHeightPx.value = 0
-}
-
 const onCompleteWatering = async (plant: Plant) => {
-    resetWatering()
-    wateringHeightPx.value = 50
-
-    isWatering.value = true
     try {
         await markPlantWatered(plant)
         await invalidatePlantsQuery()
     } catch (error) {
         console.log('Error', error)
         displayGenericError()
-    } finally {
-        isWatering.value = false
     }
 }
 // #endregion

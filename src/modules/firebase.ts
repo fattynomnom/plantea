@@ -5,7 +5,7 @@ import {
     signInWithPopup,
     signOut as signOutFirebase
 } from 'firebase/auth'
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
 import {
     type DocumentReference,
     getFirestore,
@@ -108,6 +108,15 @@ export const getFileDownloadUrl = (fileName: string) => {
     const strRef = ref(firebaseStorage, `users/${userId}/${fileName}`)
 
     return getDownloadURL(strRef)
+}
+
+export const deleteFile = (fileName: string) => {
+    console.log('Deleting file', fileName)
+
+    const userId = getUserId()
+    const strRef = ref(firebaseStorage, `users/${userId}/${fileName}`)
+
+    return deleteObject(strRef)
 }
 // #endregion
 

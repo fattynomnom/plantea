@@ -45,10 +45,7 @@ interface DbPlant {
 
 export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'>
 
-export type UpdatePlantInput = Pick<
-    Plant,
-    'id' | 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'
->
+export type UpdatePlantInput = AddPlantInput & Pick<Plant, 'id'>
 
 // #region firebase functions
 const PLANT_PATHS = ['plants']
@@ -176,6 +173,27 @@ export const updatePlantWithRecommendation = async (
     originalPlant: Pick<Plant, 'datetimes'>,
     updatedPlant: UpdatePlantInput
 ) => {
+    const plant = await getUpdatedPlantWithRecommendation(originalPlant, updatedPlant)
+    await updatePlant(plant)
+}
+
+export const updatePlantsWithRecommendation = async (
+    data: Array<{
+        originalPlant: Pick<Plant, 'datetimes'>
+        updatedPlant: UpdatePlantInput
+    }>
+) => {
+    const promises = data.map(async ({ originalPlant, updatedPlant }) =>
+        getUpdatedPlantWithRecommendation(originalPlant, updatedPlant)
+    )
+    const dataToUpdate = await Promise.all(promises)
+    await batchUpdatePlants(dataToUpdate)
+}
+
+const getUpdatedPlantWithRecommendation = async (
+    originalPlant: Pick<Plant, 'datetimes'>,
+    updatedPlant: UpdatePlantInput
+) => {
     // regenerate recommendation if some datetimes have been updated
     const originalDatetimes = originalPlant.datetimes.sort()
     const updatedDatetimes = updatedPlant.datetimes.sort()
@@ -188,7 +206,7 @@ export const updatePlantWithRecommendation = async (
         frequencyDays = await genPlantAnalysis(updatedPlant)
     }
 
-    await updatePlant({ ...updatedPlant, frequencyDays })
+    return { ...updatedPlant, frequencyDays }
 }
 
 export const genPlantAnalysis = async (
