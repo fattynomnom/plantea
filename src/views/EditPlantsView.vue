@@ -65,14 +65,14 @@ import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { getColorFromIndex } from '@/utils/colors.utils'
 import PlantSetupDetailsForm, {
-    type PlantSetupFormData
+    type PlantSetupDetailsFormData
 } from '@/components/PlantSetupDetailsForm.vue'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
 import UploadDrawer from '@/components/UploadDrawer.vue'
 import { type UpdatePlantInput } from '@/models/plant'
 import type { Image } from '@/components/ImageUpload.vue'
 
-interface PlantSetupEditFormData extends PlantSetupFormData {
+interface PlantSetupEditFormData extends PlantSetupDetailsFormData {
     originalDatetimes: number[]
     frequencyDays: UpdatePlantInput['frequencyDays']
 }

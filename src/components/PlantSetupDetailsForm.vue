@@ -93,7 +93,7 @@ interface SetupImage {
     url: string
 }
 
-export interface PlantSetupFormData {
+export interface PlantSetupDetailsFormData {
     id: string
     position: {
         x: number
@@ -109,7 +109,7 @@ const { transitionName = 'slide-left', image } = defineProps<{
     image?: SetupImage
 }>()
 
-const plants = defineModel<PlantSetupFormData[]>('plants', { required: true })
+const plants = defineModel<PlantSetupDetailsFormData[]>('plants', { required: true })
 
 const imageRef = useTemplateRef('image')
 
