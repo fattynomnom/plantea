@@ -33,7 +33,7 @@
                     </div>
                 </div>
 
-                <PlantSetupForm
+                <PlantSetupDetailsForm
                     class="flex-1"
                     :transition-name="isNextClicked ? 'slide-left' : 'slide-right'"
                     :image="
@@ -74,7 +74,9 @@ import { uploadAndCreateSetup } from '@/models/setup'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
-import PlantSetupForm, { type PlantSetupFormData } from '@/components/PlantSetupForm.vue'
+import PlantSetupDetailsForm, {
+    type PlantSetupFormData
+} from '@/components/PlantSetupDetailsForm.vue'
 import type { Image } from '@/components/ImageUpload.vue'
 import ImageUpload from '@/components/ImageUpload.vue'
 

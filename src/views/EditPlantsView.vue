@@ -26,7 +26,7 @@
                         </CustomButton>
                     </div>
 
-                    <PlantSetupForm :image="displayImage" v-model:plants="setup.plants" />
+                    <PlantSetupDetailsForm :image="displayImage" v-model:plants="setup.plants" />
                 </div>
             </template>
 
@@ -64,7 +64,9 @@ import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { getColorFromIndex } from '@/utils/colors.utils'
-import PlantSetupForm, { type PlantSetupFormData } from '@/components/PlantSetupForm.vue'
+import PlantSetupDetailsForm, {
+    type PlantSetupFormData
+} from '@/components/PlantSetupDetailsForm.vue'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
 import UploadDrawer from '@/components/UploadDrawer.vue'
 import { type UpdatePlantInput } from '@/models/plant'
