@@ -16,7 +16,8 @@ import {
     type AddPlantInput,
     type PlantSetup,
     batchUpdatePlants,
-    type UpdatePlantInput
+    type UpdatePlantInput,
+    updatePlantsWithRecommendation
 } from './plant'
 
 export interface Setup {
@@ -80,6 +81,7 @@ interface UpdateSetupInputWithFile extends Setup {
 
 interface UpdateSetupPlantInput extends UpdatePlantInput {
     position: PlantSetup['position']
+    originalDatetimes: number[]
 }
 
 export const uploadAndCreateSetup = (
@@ -113,12 +115,16 @@ export const updateSetupAndPlants = async (
             area: setup.area
         })
 
-        const plantsWithImage = plants.map(({ position, ...plant }) => ({
-            ...plant,
-            setup: { id: setup.id, position }
+        const data = plants.map(({ position, ...plant }) => ({
+            originalPlant: {
+                datetimes: plant.originalDatetimes
+            },
+            updatedPlant: {
+                ...plant,
+                setup: { id: setup.id, position }
+            }
         }))
-        // TODO: use originalDatetimes to see if frequency needs to be regenerated
-        await batchUpdatePlants(plantsWithImage)
+        await updatePlantsWithRecommendation(data)
 
         onComplete()
     }
