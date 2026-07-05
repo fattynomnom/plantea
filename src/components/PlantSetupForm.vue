@@ -81,7 +81,7 @@ import {
     InformationCircleIcon
 } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import PlantSetupDetailsForm, {
@@ -207,4 +207,12 @@ const onSubmit = async () => {
     emit('save', setup.value)
 }
 // #endregion
+
+watch(
+    () => initialSetup,
+    value => {
+        setup.value = value
+    },
+    { immediate: true }
+)
 </script>
