@@ -219,7 +219,9 @@ const batchSetDocs = async <AppModelType extends object, DbModelType extends Doc
 
     const batch = writeBatch(firestore)
     data.forEach(item => {
-        const docRef = getDocumentRef('id' in item && item.id === 'string' ? item.id : undefined)
+        const docRef = getDocumentRef(
+            'id' in item && typeof item.id === 'string' ? item.id : undefined
+        )
         batch.set(docRef, item)
     })
 
