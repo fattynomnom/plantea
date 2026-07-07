@@ -45,7 +45,11 @@
                         />
                     </div>
 
-                    <PlantSetupDetailsForm :image="displayImage" v-model:plants="setup.plants" />
+                    <PlantSetupDetailsForm
+                        :image="displayImage"
+                        v-model:plants="setup.plants"
+                        @add="onAddPlant"
+                    />
                 </div>
             </template>
 
@@ -85,12 +89,14 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import PlantSetupDetailsForm, {
+    type PlantSetupDetailsFormAddEmitterValue,
     type PlantSetupDetailsFormData
 } from '@/components/PlantSetupDetailsForm.vue'
 import AreaAutocomplete from '@/components/AreaAutocomplete.vue'
 import { type UpdatePlantInput } from '@/models/plant'
 import CropDrawer, { type CropDrawerSaveEmitterValue } from './CropDrawer.vue'
 import { getFileExtension } from '@/utils/file.utils'
+import { v4 } from 'uuid'
 
 interface Plant extends PlantSetupDetailsFormData {
     originalDatetimes: number[]
@@ -197,7 +203,19 @@ const displayImage = computed(() => {
 })
 // #endregion
 
-// #region submission
+// #region form
+const onAddPlant = ({ positionPercentage, color }: PlantSetupDetailsFormAddEmitterValue) => {
+    setup.value.plants.push({
+        id: v4(),
+        positionPercentage,
+        color,
+        name: '',
+        dates: [],
+        originalDatetimes: [],
+        frequencyDays: undefined
+    })
+}
+
 const onSubmit = async () => {
     const data = setup.value
     if (!data || !data.plants.length) {

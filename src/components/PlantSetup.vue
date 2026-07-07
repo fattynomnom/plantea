@@ -22,10 +22,7 @@
                 'absolute rounded-full border border-white outline outline-offset-2 outline-white h-[50px] w-[50px] flex flex-col justify-center': true,
                 'overflow-hidden': plant.isWateredToday || wateringHeightPx > 0
             }"
-            :style="{
-                left: `${plant.setup.position.x - 25}px`,
-                top: `${plant.setup.position.y - 25}px`
-            }"
+            :style="getPlantIndicatorStyle(plant.setup.positionPercentage)"
             :options="{ delay: 2000 }"
             @touchstart="onStartWatering(plant.id)"
             @touchend="resetWatering"
@@ -60,12 +57,15 @@ import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { CheckIcon } from '@heroicons/vue/24/outline'
 import { ExclamationCircleIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
 import { OnLongPress } from '@vueuse/components'
-import { ref } from 'vue'
+import { ref, useTemplateRef } from 'vue'
 import CustomSpinner from '@/components/CustomSpinner.vue'
 import { markPlantWatered, type Plant } from '@/models/plant'
 import { usePlantsQuery, type PlantWithSetup } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
 import type { Setup } from '@/models/setup'
+import { calculatePosition } from '@/utils/chartValues.utils'
+import type { ChartValues } from '@/types'
+import { useElementSize } from '@vueuse/core'
 
 const { setup, plants } = defineProps<{
     setup: Setup
@@ -77,6 +77,20 @@ const { data: downloadUrl } = useDownloadUrlQuery(setup.imgName)
 const { invalidatePlantsQuery } = usePlantsQuery()
 
 const { displayGenericError } = useToast()
+
+const imageRef = useTemplateRef('image')
+const imgDimensions = useElementSize(imageRef)
+
+const getPlantIndicatorStyle = (
+    positionPercentage: ChartValues
+): { left: string; top: string } | undefined => {
+    const position = calculatePosition(positionPercentage, {
+        width: imgDimensions.width.value,
+        height: imgDimensions.height.value
+    })
+
+    return position ? { left: `${position.x - 20}px`, top: `${position.y - 20}px` } : undefined
+}
 
 // #region watering
 const selectedPlantId = ref<string>()

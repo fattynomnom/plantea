@@ -14,14 +14,11 @@
 
                 <UseDraggable
                     v-for="(plant, plantIndex) in plants"
-                    :key="plant.id"
-                    :initial-value="{
-                        x: plant.position.x,
-                        y: plant.position.y
-                    }"
+                    :key="`${plant.id}-${positionsRenderKey}`"
+                    :initial-value="positions[plantIndex]"
                     :container-element="imageRef"
                     class="absolute"
-                    @end="position => (plant.position = position)"
+                    @end="position => setPositionPercentage(position, plantIndex)"
                 >
                     <PlantIndicator
                         :color="plant.color"
@@ -80,13 +77,15 @@
 <script setup lang="ts">
 import { getColorFromIndex } from '@/utils/colors.utils'
 import { UseDraggable } from '@vueuse/components'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import PlantIndicator from './PlantIndicator.vue'
 import CustomButton from './CustomButton.vue'
 import { CalendarDaysIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import PlantsDrawer, { type PlantInput, type PlantOutput } from '@/components/PlantsDrawer.vue'
 import dayjs from 'dayjs'
-import { v4 } from 'uuid'
+import type { ChartValues } from '@/types'
+import { calculatePosition } from '@/utils/chartValues.utils'
+import { useElementSize } from '@vueuse/core'
 
 interface SetupImage {
     name?: string
@@ -95,23 +94,27 @@ interface SetupImage {
 
 export interface PlantSetupDetailsFormData {
     id: string
-    position: {
-        x: number
-        y: number
-    }
+    positionPercentage: ChartValues
     color: string
     name: string
     dates: Date[]
 }
+
+export type PlantSetupDetailsFormAddEmitterValue = Pick<
+    PlantSetupDetailsFormData,
+    'positionPercentage' | 'color'
+>
 
 const { transitionName = 'slide-left', image } = defineProps<{
     transitionName?: 'slide-left' | 'slide-right'
     image?: SetupImage
 }>()
 
-const plants = defineModel<PlantSetupDetailsFormData[]>('plants', { required: true })
+const emit = defineEmits<{
+    (e: 'add', value: PlantSetupDetailsFormAddEmitterValue): Promise<void>
+}>()
 
-const imageRef = useTemplateRef('image')
+const plants = defineModel<PlantSetupDetailsFormData[]>('plants', { required: true })
 
 const selectedIndicatorIndex = ref<number>()
 const selectedPlantIndex = ref<number>()
@@ -141,6 +144,45 @@ const isDrawerVisible = computed<boolean>({
     }
 })
 
+// #region positioning
+const positionsRenderKey = ref(0)
+
+const imageRef = useTemplateRef('image')
+
+const imgDimensions = useElementSize(imageRef)
+
+const positions = computed<Array<ChartValues | undefined>>(() =>
+    plants.value.map(({ positionPercentage }) => calculatePlantPosition(positionPercentage))
+)
+
+const calculatePlantPosition = (positionPercentage: ChartValues): ChartValues | undefined =>
+    calculatePosition(positionPercentage, {
+        width: imgDimensions.width.value,
+        height: imgDimensions.height.value
+    })
+
+const calculatePositionPercentage = ({ x, y }: ChartValues) => {
+    const { width, height } = imgDimensions
+    if (width.value && height.value) {
+        return {
+            x: (x / width.value) * 100,
+            y: (y / height.value) * 100
+        }
+    }
+
+    return undefined
+}
+
+const setPositionPercentage = (position: ChartValues, plantIndex: number) => {
+    const plant = plants.value[plantIndex]
+    if (plant) {
+        const positionPercentage = calculatePositionPercentage(position)
+        if (positionPercentage) {
+            plant.positionPercentage = positionPercentage
+        }
+    }
+}
+
 const onImgClick = (event: PointerEvent) => {
     const imgPosition = imageRef.value?.getBoundingClientRect()
     if (!imgPosition) {
@@ -157,11 +199,20 @@ const onImgClick = (event: PointerEvent) => {
     if (typeof plantIndex === 'number') {
         const color = getColorFromIndex(plantIndex)
         if (color) {
-            plants.value.push({ id: v4(), position: { x, y }, color, name: '', dates: [] })
+            const positionPercentage = calculatePositionPercentage({ x, y })
+            if (positionPercentage) {
+                emit('add', { positionPercentage, color })
+            }
         }
     }
 }
 
+watch(positions, () => {
+    positionsRenderKey.value += 1
+})
+// #endregion
+
+// #region submission
 const onSubmitPlantDrawer = (plant: PlantOutput) => {
     if (typeof selectedPlantIndex.value === 'number') {
         const plantData = plants.value[selectedPlantIndex.value]
@@ -172,4 +223,5 @@ const onSubmitPlantDrawer = (plant: PlantOutput) => {
         }
     }
 }
+// #endregion
 </script>

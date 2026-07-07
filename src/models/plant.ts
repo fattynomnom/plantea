@@ -7,6 +7,7 @@ import {
     batchUpdateDocs,
     batchCreateDocs
 } from '@/modules/firebase'
+import type { ChartValues } from '@/types'
 import dayjs from 'dayjs'
 import {
     QueryDocumentSnapshot,
@@ -17,10 +18,7 @@ import {
 
 export interface PlantSetup {
     id: string
-    position: {
-        x: number
-        y: number
-    }
+    positionPercentage: ChartValues
 }
 
 export interface Plant {

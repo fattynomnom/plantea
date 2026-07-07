@@ -77,15 +77,15 @@ interface AddSetupInputWithFile extends Pick<AddSetupInput, 'area'> {
 }
 
 interface AddSetupPlantInput extends AddPlantInput {
-    position: PlantSetup['position']
+    positionPercentage: PlantSetup['positionPercentage']
 }
 
 interface UpdateSetupInputWithFile extends Setup {
     replacementFile?: SetupFile
 }
 
-interface UpdateSetupPlantInput extends UpdatePlantInput {
-    position: PlantSetup['position']
+interface UpdateSetupPlantInput extends Omit<UpdatePlantInput, 'setup'> {
+    positionPercentage: PlantSetup['positionPercentage']
     originalDatetimes: number[]
 }
 
@@ -100,9 +100,9 @@ export const uploadAndCreateSetup = (
     return uploadFile(fileName, setup.file.croppedImgBlob, onUploading, async (_, imgName) => {
         const setupId = await createSetup({ imgName, area: setup.area })
 
-        const plantsWithImage = plants.map(({ position, ...plant }) => ({
+        const plantsWithImage = plants.map(({ positionPercentage, ...plant }) => ({
             ...plant,
-            setup: { id: setupId, position }
+            setup: { id: setupId, positionPercentage }
         }))
         await batchCreatePlants(plantsWithImage)
 
@@ -123,13 +123,13 @@ export const updateSetupAndPlants = async (
             area: setup.area
         })
 
-        const data = plants.map(({ position, ...plant }) => ({
+        const data = plants.map(({ positionPercentage, ...plant }) => ({
             originalPlant: {
                 datetimes: plant.originalDatetimes
             },
             updatedPlant: {
                 ...plant,
-                setup: { id: setup.id, position }
+                setup: { id: setup.id, positionPercentage }
             }
         }))
         await updatePlantsWithRecommendation(data)

@@ -32,7 +32,7 @@ const setup = computed<PlantSetupFormData>(() => {
                 ...data,
                 plants: data.plants.map(({ id, setup, name, datetimes, frequencyDays }, index) => ({
                     id,
-                    position: setup.position,
+                    positionPercentage: setup.positionPercentage,
                     color: getColorFromIndex(index),
                     name,
                     dates: datetimes.map(datetime => new Date(datetime)),
@@ -68,8 +68,12 @@ const onSubmit = async (data: PlantSetupFormData) => {
                 imgName: data.imgName
             },
             data.plants.map(({ dates, ...plant }) => ({
-                ...plant,
-                datetimes: dates.map(date => date.getTime())
+                id: plant.id,
+                name: plant.name,
+                datetimes: dates.map(date => date.getTime()),
+                frequencyDays: plant.frequencyDays,
+                positionPercentage: plant.positionPercentage,
+                originalDatetimes: plant.originalDatetimes
             })),
             () => {},
             () => {
