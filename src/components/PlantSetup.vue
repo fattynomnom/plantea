@@ -129,7 +129,12 @@
 
                     <div class="grid grid-cols-2 gap-2">
                         <CustomButton variant="outline">Edit</CustomButton>
-                        <CustomButton>Water</CustomButton>
+                        <CustomButton
+                            :is-disabled="plant.isWateredToday"
+                            @click="onCompleteWatering(plant)"
+                        >
+                            Water
+                        </CustomButton>
                     </div>
                 </div>
             </Transition>
