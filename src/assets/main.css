@@ -191,6 +191,10 @@ label {
     @apply text-sm font-semibold;
 }
 
+.font-accent {
+    font-family: var(--font-accent);
+}
+
 .bg-color-default {
     background-color: var(--bg-color);
 }
@@ -236,6 +240,16 @@ label {
 .slide-left-leave-active,
 .instant-slide-left-leave-active {
     @apply transition-all ease-in duration-200;
+}
+
+.opacity-enter-active,
+.opacity-leave-active {
+    @apply transition-all ease-out duration-150;
+}
+
+.opacity-enter-from,
+.opacity-leave-to {
+    @apply opacity-0;
 }
 /* #endregion */
 
@@ -501,5 +515,52 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 .p-select-option-group,
 .p-select-option {
     @apply pt-2 pb-0 !important;
+}
+/* #endregion */
+
+/* #region PrimeVue chip */
+.p-chip {
+    @apply pl-2 pr-3 py-1.5 gap-1 rounded-xl !important;
+}
+
+.p-chip > svg {
+    @apply w-4 h-4 !important;
+}
+
+.p-chip[data-color='sky'] {
+    @apply bg-sky-500 !important;
+}
+
+.p-chip[data-color='sky'] > svg {
+    @apply text-sky-900 !important;
+}
+
+.p-chip[data-color='gray'] {
+    @apply bg-gray-400 !important;
+}
+
+.p-chip[data-color='gray'] > svg {
+    @apply text-gray-700 !important;
+}
+
+.p-chip[data-color='red'] {
+    @apply bg-red-400 !important;
+}
+
+.p-chip[data-color='red'] > svg {
+    @apply text-red-700 !important;
+}
+
+.p-chip[data-color='green'] {
+    @apply bg-green-700 !important;
+}
+
+.p-chip[data-color='green'] > svg {
+    @apply text-green-500 !important;
+}
+
+.p-chip-label {
+    font-family: var(--font-accent) !important;
+    @apply text-xs !important;
 }
 /* #endregion */

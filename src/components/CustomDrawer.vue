@@ -29,16 +29,6 @@ const { drawerClass = '' } = defineProps<{
 </script>
 
 <style scoped>
-.opacity-enter-active,
-.opacity-leave-active {
-    transition: all 0.15s ease-out;
-}
-
-.opacity-enter-from,
-.opacity-leave-to {
-    opacity: 0;
-}
-
 .slide-left-move,
 .slide-left-enter-active,
 .slide-left-leave-active,
