@@ -35,17 +35,7 @@
         </div>
 
         <div class="mb-4">
-            <h3>{{ plant.name }} logs</h3>
-            <ul v-if="plant.datetimes.length" class="grid grid-cols-2">
-                <li
-                    v-for="datetimes in plant.datetimes.slice(0, 10)"
-                    :key="`${plant.id}-${datetimes}`"
-                    class="tracking-wider text-sm"
-                >
-                    {{ dayjs(datetimes).format('DD/MM/YYYY') }}
-                </li>
-            </ul>
-            <div v-else class="text-sm">No data recorded.</div>
+            <slot />
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -71,16 +61,7 @@ import CustomButton from './CustomButton.vue'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/vue/24/solid'
 
 const { plant, isWatering } = defineProps<{
-    plant: Pick<
-        Plant,
-        | 'frequencyDays'
-        | 'isWateredToday'
-        | 'shouldBeWatered'
-        | 'nextWateringDate'
-        | 'name'
-        | 'datetimes'
-        | 'id'
-    >
+    plant: Pick<Plant, 'frequencyDays' | 'isWateredToday' | 'shouldBeWatered' | 'nextWateringDate'>
     isWatering: boolean
 }>()
 
