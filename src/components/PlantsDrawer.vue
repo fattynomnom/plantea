@@ -332,6 +332,16 @@ const onInputDate = (e: InputEvent, index: number) => {
 
     plant.dates[index] = value
 }
+
+watch(
+    isManualAddDate,
+    value => {
+        if (value && plant.dates.length === 0) {
+            plant.dates.push(null)
+        }
+    },
+    { immediate: true }
+)
 // #endregion
 
 const onSubmit = async () => {
