@@ -38,7 +38,13 @@
                             maxlength="10"
                         />
 
-                        <CustomButton type="button" variant="outline" class="col-span-2">
+                        <CustomButton
+                            type="button"
+                            variant="outline"
+                            class="col-span-2"
+                            :is-loading="isAutoGenerating"
+                            @click="onAutoGenerateClick"
+                        >
                             <SparklesIcon />
                             <span>Auto generate</span>
                         </CustomButton>
@@ -163,8 +169,9 @@ import { RadioButton, Select } from 'primevue'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import AreaAutocomplete from './AreaAutocomplete.vue'
 import dayjs from 'dayjs'
-import { convertTextToDate } from '@/utils/date.utils'
-import type { Plant } from '@/models/plant'
+import { convertTextToDate, convertTextsToDates, convertTextsToDatetimes } from '@/utils/date.utils'
+import { genPlantAnalysis, type Plant } from '@/models/plant'
+import { useToast } from '@/composables/useToast'
 
 export interface PlantInput extends Pick<Plant, 'name' | 'area' | 'setup' | 'frequencyDays'> {
     id?: string
@@ -192,7 +199,6 @@ const visible = defineModel<boolean>('visible', { required: true })
 
 const {
     allowArea = true,
-    shouldValidate = true,
     isLoading = false,
     title,
     initialValue = {
@@ -203,7 +209,6 @@ const {
     }
 } = defineProps<{
     allowArea?: boolean
-    shouldValidate?: boolean
     isLoading?: boolean
     title: string
     initialValue?: PlantInput
@@ -214,6 +219,8 @@ const emit = defineEmits<{
 }>()
 
 const { data: plants } = usePlantsQuery()
+
+const { displayGenericError } = useToast()
 
 const allPlants = computed(
     () => plants.value?.singlePlants.concat(plants.value.plantsWithSetup) ?? []
@@ -244,6 +251,18 @@ const dateErrors = ref<boolean[]>([])
 
 const hasDateErrors = computed(() => dateErrors.value.some(Boolean))
 
+const validateDates = () => {
+    dateErrors.value = plant.dates.map(dateText => {
+        const value = dateText?.trim()
+        if (value) {
+            const date = convertTextToDate(value)
+            return isNaN(date as unknown as number)
+        }
+
+        return false
+    })
+}
+
 const validatePlantsData = () => {
     if (!plant.name) {
         nameError.value = 'Plant name is required.'
@@ -264,15 +283,7 @@ const validatePlantsData = () => {
         nameError.value = 'Plant name is already being used'
     }
 
-    dateErrors.value = plant.dates.map(dateText => {
-        const value = dateText?.trim()
-        if (value) {
-            const date = convertTextToDate(value)
-            return isNaN(date as unknown as number)
-        }
-
-        return false
-    })
+    validateDates()
 
     // TODO: validate that entered dates is not in the future
 }
@@ -344,29 +355,43 @@ watch(
 )
 // #endregion
 
-const onSubmit = async () => {
+// #region generate frequency days
+const isAutoGenerating = ref(false)
+
+const onAutoGenerateClick = async () => {
     resetErrors()
+    validatePlantsData()
 
-    if (shouldValidate) {
-        validatePlantsData()
-
-        if (nameError.value || hasDateErrors.value) {
-            return
-        }
+    if (nameError.value || hasDateErrors.value) {
+        return
     }
 
-    const validDatetimes = plant.dates.reduce<Date[]>((acc, dateText) => {
-        const value = dateText?.trim()
-        if (value) {
-            return acc.concat(convertTextToDate(value))
-        }
+    isAutoGenerating.value = true
 
-        return acc
-    }, [])
+    try {
+        plant.frequencyDays = await genPlantAnalysis({
+            name: plant.name,
+            datetimes: convertTextsToDatetimes(plant.dates)
+        })
+    } catch {
+        displayGenericError()
+    } finally {
+        isAutoGenerating.value = false
+    }
+}
+// #endregion
+
+const onSubmit = async () => {
+    resetErrors()
+    validatePlantsData()
+
+    if (nameError.value || hasDateErrors.value) {
+        return
+    }
 
     await emit('submit', {
         ...plant,
-        dates: validDatetimes
+        dates: convertTextsToDates(plant.dates)
     })
 }
 
@@ -393,7 +418,7 @@ watch(visible, value => {
     if (value) {
         plant.id = initialValue.id
         plant.name = initialValue.name
-        plant.dates = initialValue.dates
+        plant.dates = initialValue.dates.length ? initialValue.dates : [null]
         plant.area = initialValue.area
         plant.setup = initialValue.setup
     }
