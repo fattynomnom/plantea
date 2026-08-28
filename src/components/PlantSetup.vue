@@ -78,7 +78,10 @@
                         top: `${INDICATOR_WIDTH_PX}px`
                     }"
                 >
-                    <div class="flex flex-wrap gap-2 mb-3">
+                    <div
+                        v-if="plant.frequencyDays || plant.isWateredToday || plant.shouldBeWatered"
+                        class="flex flex-wrap gap-2 mb-3"
+                    >
                         <Chip
                             v-if="plant.frequencyDays"
                             :label="`Every ${plant.frequencyDays} days`"
