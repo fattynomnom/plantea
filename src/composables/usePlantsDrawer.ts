@@ -1,29 +1,31 @@
 import { reactive, ref } from 'vue'
-import { type Plant } from '@/models/plant'
+import { updatePlantWithRecommendation, type Plant, createPlant } from '@/models/plant'
 import dayjs from 'dayjs'
-
-interface PlantInput extends Pick<Plant, 'name' | 'area'> {
-    id?: string
-    dates: Array<string | null>
-}
-
-const isPlantsDrawerVisible = ref(false)
-
-const plant = reactive<PlantInput>({
-    id: undefined,
-    name: '',
-    dates: [],
-    area: undefined
-})
-
-const originalDatetimes = ref<Plant['datetimes']>()
+import { usePlantsQuery } from './usePlantsQuery'
+import { useToast } from './useToast'
+import type { PlantInput, PlantOutput } from '@/components/PlantsDrawer.vue'
 
 export const usePlantsDrawer = () => {
-    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes'>) => {
+    const isPlantsDrawerVisible = ref(false)
+    const isLoading = ref(false)
+    const originalDatetimes = ref<Plant['datetimes']>()
+    const plant = reactive<PlantInput>({
+        id: undefined,
+        name: '',
+        dates: [null],
+        area: undefined
+    })
+
+    const { invalidatePlantsQuery } = usePlantsQuery()
+
+    const { displayGenericError } = useToast()
+
+    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup'>) => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.sort().map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
         plant.area = data.area
+        plant.setup = data.setup
 
         originalDatetimes.value = data.datetimes
 
@@ -33,11 +35,54 @@ export const usePlantsDrawer = () => {
     const resetPlant = () => {
         plant.id = undefined
         plant.name = ''
-        plant.dates = []
+        plant.dates = [null]
         plant.area = undefined
 
         originalDatetimes.value = undefined
+
+        isPlantsDrawerVisible.value = false
     }
 
-    return { isPlantsDrawerVisible, plant, originalDatetimes, editPlant, resetPlant }
+    const onSubmitPlantForm = async (data: PlantOutput) => {
+        isLoading.value = true
+
+        try {
+            const datetimes = data.dates.map(date => date.getTime())
+
+            if (data.id) {
+                if (!originalDatetimes.value) {
+                    throw new Error('Missing original datetimes.')
+                }
+
+                await updatePlantWithRecommendation(
+                    { datetimes: originalDatetimes.value ?? [] },
+                    {
+                        ...data,
+                        id: data.id,
+                        datetimes
+                    }
+                )
+            } else {
+                await createPlant({
+                    ...data,
+                    datetimes
+                })
+            }
+
+            await invalidatePlantsQuery()
+            resetPlant()
+        } catch {
+            displayGenericError()
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    return {
+        isPlantsDrawerVisible,
+        isLoading,
+        plant,
+        editPlant,
+        onSubmitPlantForm
+    }
 }

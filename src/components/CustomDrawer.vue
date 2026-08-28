@@ -9,7 +9,7 @@
     <TransitionGroup :name="visible ? 'slide-left' : 'slide-right'">
         <div
             v-if="visible"
-            :class="`absolute right-0 top-0 bottom-0 bg-color-primary rounded-l-2xl w-1/2 z-20 flex flex-col p-5 space-y-5 ${drawerClass}`"
+            :class="`absolute right-0 top-0 bottom-0 bg-color-default rounded-l-2xl w-1/2 z-20 flex flex-col p-5 space-y-5 ${drawerClass}`"
         >
             <XMarkIcon class="h-5 w-5 ml-auto" @click="visible = false" />
 
@@ -29,16 +29,6 @@ const { drawerClass = '' } = defineProps<{
 </script>
 
 <style scoped>
-.opacity-enter-active,
-.opacity-leave-active {
-    transition: all 0.15s ease-out;
-}
-
-.opacity-enter-from,
-.opacity-leave-to {
-    opacity: 0;
-}
-
 .slide-left-move,
 .slide-left-enter-active,
 .slide-left-leave-active,

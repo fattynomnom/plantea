@@ -127,14 +127,11 @@
     --font-primary: 'Inter', sans-serif;
     --font-accent: 'Nunito', sans-serif;
     --font-color: var(--color-gray-700);
+    --input-placeholder-color: var(--color-gray-400);
     --bg-color: var(--color-orange-100);
     --color-primary: var(--color-green-800);
+    --color-primary-dark: var(--color-green-950);
     --color-danger: var(--color-red-900);
-
-    --p-stepper-separator-background: var(--color-gray-700) !important;
-    --p-fileupload-border-color: var(--color-gray-700) !important;
-    --p-inputtext-border-color: var(--color-gray-700) !important;
-    --p-tooltip-background: var(--color-gray-950) !important;
 }
 
 ::-webkit-scrollbar {
@@ -177,11 +174,12 @@ h2 {
 }
 
 h3 {
-    @apply font-semibold text-gray-500;
+    font-family: var(--font-accent);
+    @apply font-semibold text-lg;
 }
 
 small {
-    @apply text-sm;
+    @apply text-sm leading-none;
 }
 
 a {
@@ -189,11 +187,20 @@ a {
 }
 
 label {
-    @apply text-sm;
+    font-family: var(--font-accent);
+    @apply text-sm font-semibold;
+}
+
+.font-accent {
+    font-family: var(--font-accent);
+}
+
+.bg-color-default {
+    background-color: var(--bg-color);
 }
 
 .bg-color-primary {
-    background-color: var(--bg-color);
+    background-color: var(--color-primary);
 }
 
 .color-primary {
@@ -207,13 +214,15 @@ label {
 
 /* #region Vue transitions */
 .slide-right-enter-from,
-.slide-left-leave-to {
+.slide-left-leave-to,
+.instant-slide-left-leave-to {
     translate: -100%;
     opacity: 0;
 }
 
 .slide-right-leave-to,
-.slide-left-enter-from {
+.slide-left-enter-from,
+.instant-slide-left-enter-from {
     translate: 100%;
     opacity: 0;
 }
@@ -223,9 +232,24 @@ label {
     @apply transition-all ease-in duration-200 delay-200;
 }
 
-.slide-right-leave-active,
-.slide-left-leave-active {
+.instant-slide-left-enter-active {
     @apply transition-all ease-in duration-200;
+}
+
+.slide-right-leave-active,
+.slide-left-leave-active,
+.instant-slide-left-leave-active {
+    @apply transition-all ease-in duration-200;
+}
+
+.opacity-enter-active,
+.opacity-leave-active {
+    @apply transition-all ease-out duration-150;
+}
+
+.opacity-enter-from,
+.opacity-leave-to {
+    @apply opacity-0;
 }
 /* #endregion */
 
@@ -292,15 +316,16 @@ div[data-pc-name='stepper'] div[data-pc-name='step']:not(:first-child) {
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='number'][data-p*='active'] {
-    @apply bg-indigo-500 border-0;
+    background-color: var(--color-primary) !important;
+    @apply border-0;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='number'] {
-    @apply bg-gray-950 border-0 text-sm min-w-7 h-7;
+    @apply border-0 text-sm min-w-7 h-7 !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='separator'][data-p*='completed'] {
-    @apply bg-indigo-500;
+    background-color: var(--color-primary) !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='separator'] {
@@ -308,7 +333,11 @@ div[data-pc-name='stepper'] span[data-pc-section='separator'] {
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='title'][data-p*='active'] {
-    @apply text-indigo-500;
+    color: var(--color-primary) !important;
+}
+
+.p-step-number {
+    @apply text-white !important;
 }
 
 div[data-pc-name='stepper'] span[data-pc-section='title'] {
@@ -318,15 +347,19 @@ div[data-pc-name='stepper'] span[data-pc-section='title'] {
 div[data-pc-name='stepper'] div[data-pc-name='steppanel'] {
     @apply bg-transparent;
 }
+
+.p-step-title {
+    @apply text-gray-800 !important;
+}
 /* #endregion */
 
 /* #region PrimeVue FileUpload */
-div[data-pc-name='fileupload'] {
-    @apply bg-transparent rounded-2xl;
+.p-fileupload-advanced {
+    @apply bg-white rounded-2xl border-none !important;
 }
 
 div[data-pc-name='fileupload'] div[data-pc-section='header'] {
-    @apply bg-transparent border-0 pt-16 pb-3;
+    @apply bg-transparent border-0 pt-16 pb-5;
 }
 
 div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='header'] {
@@ -334,7 +367,7 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='h
 }
 
 div[data-pc-name='fileupload'] div[data-pc-section='content'] {
-    @apply pb-16 pt-0;
+    @apply pb-14 pt-0 px-7 !important;
 }
 
 div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='content'] {
@@ -346,11 +379,20 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 .p-inputtext {
     @apply rounded-2xl text-inherit bg-white text-sm font-normal px-5 py-3 border-0 !important;
 }
+
+.p-inputtext[data-size='small'] {
+    @apply px-3 !important;
+}
+
+.p-inputtext::placeholder {
+    color: var(--input-placeholder-color) !important;
+}
 /* #endregion */
 
 /* #region PrimeVue Tooltip */
 .p-tooltip-text {
-    @apply rounded-xl text-xs bg-gray-950 !important;
+    background-color: var(--color-primary-dark) !important;
+    @apply rounded-xl text-xs !important;
 }
 /* #endregion */
 
@@ -426,5 +468,99 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
 .p-datepicker-day-selected {
     background-color: var(--color-primary) !important;
     @apply text-white !important;
+}
+/* #endregion */
+
+/* #region PrimeVue radio */
+.p-radiobutton {
+    @apply items-center !important;
+}
+
+.p-radiobutton-box {
+    @apply bg-transparent h-5 w-5 !important;
+}
+
+.p-radiobutton-checked .p-radiobutton-box .p-radiobutton-icon {
+    background-color: var(--color-primary) !important;
+}
+
+.p-radiobutton-checked .p-radiobutton-box {
+    border-color: var(--color-primary) !important;
+}
+
+.p-radiobutton-icon {
+    @apply h-3 w-3 !important;
+}
+/* #endregion */
+
+/* #region PrimeVue select */
+.p-select-label {
+    @apply p-0 text-sm !important;
+}
+
+.p-select-overlay {
+    @apply bg-white border-none rounded-2xl !important;
+}
+
+.p-select-label,
+.p-select-option-group,
+.p-select-option {
+    color: var(--font-color) !important;
+}
+
+.p-placeholder {
+    color: var(--input-placeholder-color) !important;
+}
+
+.p-select-option-group,
+.p-select-option {
+    @apply pt-2 pb-0 !important;
+}
+/* #endregion */
+
+/* #region PrimeVue chip */
+.p-chip {
+    @apply pl-2 pr-3 py-1.5 gap-1 rounded-xl !important;
+}
+
+.p-chip > svg {
+    @apply w-4 h-4 !important;
+}
+
+.p-chip[data-color='sky'] {
+    @apply bg-sky-500 !important;
+}
+
+.p-chip[data-color='sky'] > svg {
+    @apply text-sky-900 !important;
+}
+
+.p-chip[data-color='gray'] {
+    @apply bg-gray-400 !important;
+}
+
+.p-chip[data-color='gray'] > svg {
+    @apply text-gray-700 !important;
+}
+
+.p-chip[data-color='red'] {
+    @apply bg-red-400 !important;
+}
+
+.p-chip[data-color='red'] > svg {
+    @apply text-red-700 !important;
+}
+
+.p-chip[data-color='green'] {
+    @apply bg-green-700 !important;
+}
+
+.p-chip[data-color='green'] > svg {
+    @apply text-green-500 !important;
+}
+
+.p-chip-label {
+    font-family: var(--font-accent) !important;
+    @apply text-xs !important;
 }
 /* #endregion */

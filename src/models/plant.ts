@@ -4,9 +4,11 @@ import {
     updateDoc,
     type CollectionConfig,
     genAi,
-    batchUpdateDocs
+    batchUpdateDocs,
+    batchCreateDocs
 } from '@/modules/firebase'
-import dayjs, { Dayjs } from 'dayjs'
+import type { ChartValues } from '@/types'
+import dayjs from 'dayjs'
 import {
     QueryDocumentSnapshot,
     Timestamp,
@@ -14,13 +16,19 @@ import {
     type WithFieldValue
 } from 'firebase/firestore/lite'
 
+export interface PlantSetup {
+    id: string
+    positionPercentage: ChartValues
+}
+
 export interface Plant {
     id: string
     name: string
     datetimes: number[]
     area?: string
     frequencyDays?: number
-    nextWateringDate?: Dayjs
+    setup?: PlantSetup
+    nextWateringDate?: number
     isWateredToday: boolean
     shouldBeWatered: boolean
 }
@@ -30,11 +38,12 @@ interface DbPlant {
     dates: Timestamp[]
     area?: string
     frequencyDays?: number
+    image?: PlantSetup
 }
 
-export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays'>
+export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'>
 
-export type UpdatePlantInput = Pick<Plant, 'id' | 'name' | 'datetimes' | 'area' | 'frequencyDays'>
+export type UpdatePlantInput = AddPlantInput & Pick<Plant, 'id'>
 
 // #region firebase functions
 const PLANT_PATHS = ['plants']
@@ -48,8 +57,7 @@ const shouldBeWatered = (nextWateringDate: Plant['nextWateringDate']) => {
         return false
     }
 
-    const nextWateringDatetime = nextWateringDate.unix() * 1000
-    return nextWateringDatetime <= todayDateTime
+    return nextWateringDate <= todayDateTime
 }
 
 const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
@@ -61,7 +69,8 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         ...(plant.area && { area: plant.area as string }),
         ...(typeof plant.frequencyDays === 'number' && {
             frequencyDays: plant.frequencyDays as number
-        })
+        }),
+        ...(plant.setup && { image: plant.setup as PlantSetup })
     }),
     fromFirestore: (snapshot: QueryDocumentSnapshot<DbPlant>): Plant => {
         const data = snapshot.data()
@@ -69,7 +78,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         const datetimes = data.dates.map(({ seconds }) => seconds * 1000).sort((a, b) => b - a)
         const nextWateringDate =
             datetimes[0] && data.frequencyDays
-                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days')
+                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days').unix()
                 : undefined
 
         const isWateredToday = datetimes.includes(todayDateTime)
@@ -80,6 +89,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
             datetimes,
             area: data.area,
             frequencyDays: data.frequencyDays,
+            setup: data.image,
             nextWateringDate,
             isWateredToday,
             shouldBeWatered: shouldBeWatered(nextWateringDate)
@@ -98,6 +108,9 @@ export const createPlant = (data: AddPlantInput) =>
     createDoc<AddPlantInput, DbPlant>(plantCollectionConfig, data)
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
+
+export const batchCreatePlants = (data: AddPlantInput[]) =>
+    batchCreateDocs<AddPlantInput, DbPlant>(plantCollectionConfig, data)
 
 export const batchUpdatePlants = (data: UpdatePlantInput[]) =>
     batchUpdateDocs(plantCollectionConfig, data)
@@ -143,8 +156,7 @@ export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) =>
 
     // regenerate recommendation when logged date is different from recommended date
     if (plant.nextWateringDate) {
-        const nextWateringDatetime = plant.nextWateringDate.unix() * 1000
-        if (nextWateringDatetime !== todayDateTime) {
+        if (plant.nextWateringDate !== todayDateTime) {
             frequencyDays = await genPlantAnalysis(updatedPlant)
         }
     } else {
@@ -156,6 +168,27 @@ export const markPlantWatered = async (plant: Omit<Plant, 'shouldBeWatered'>) =>
 }
 
 export const updatePlantWithRecommendation = async (
+    originalPlant: Pick<Plant, 'datetimes'>,
+    updatedPlant: UpdatePlantInput
+) => {
+    const plant = await getUpdatedPlantWithRecommendation(originalPlant, updatedPlant)
+    await updatePlant(plant)
+}
+
+export const updatePlantsWithRecommendation = async (
+    data: Array<{
+        originalPlant: Pick<Plant, 'datetimes'>
+        updatedPlant: UpdatePlantInput
+    }>
+) => {
+    const promises = data.map(async ({ originalPlant, updatedPlant }) =>
+        getUpdatedPlantWithRecommendation(originalPlant, updatedPlant)
+    )
+    const dataToUpdate = await Promise.all(promises)
+    await batchUpdatePlants(dataToUpdate)
+}
+
+const getUpdatedPlantWithRecommendation = async (
     originalPlant: Pick<Plant, 'datetimes'>,
     updatedPlant: UpdatePlantInput
 ) => {
@@ -171,7 +204,7 @@ export const updatePlantWithRecommendation = async (
         frequencyDays = await genPlantAnalysis(updatedPlant)
     }
 
-    await updatePlant({ ...updatedPlant, frequencyDays })
+    return { ...updatedPlant, frequencyDays }
 }
 
 export const genPlantAnalysis = async (
@@ -202,7 +235,7 @@ export const getPlantsToWaterOnDate = (plants: Plant[], date: Date) => {
     const datetime = date.getTime()
 
     return plants.reduce<Plant[]>((acc, plant) => {
-        let nextWateringDatetime = plant.nextWateringDate?.toDate().getTime()
+        let nextWateringDatetime = plant.nextWateringDate
         if (nextWateringDatetime && plant.frequencyDays) {
             while (nextWateringDatetime < datetime) {
                 nextWateringDatetime = dayjs(nextWateringDatetime)

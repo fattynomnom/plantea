@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-col h-full overflow-y-auto transition-colors p-7 space-y-5">
-        <div class="flex justify-between items-center">
+    <div class="flex flex-col h-screen overflow-y-hidden transition-colors">
+        <div class="flex justify-between items-center p-7">
             <Logo class="h-10 w-10" />
             <Bars3Icon v-if="user" class="h-5 w-5" @click="isMenuOpen = true" />
         </div>
 
-        <div class="flex-1">
+        <div class="flex-1 flex flex-col overflow-y-hidden">
             <RouterView />
         </div>
     </div>
@@ -20,22 +20,22 @@
     </CustomDrawer>
 
     <Toast />
-
-    <PlantsDrawer />
 </template>
 
 <script setup lang="ts">
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import Toast from 'primevue/toast'
 import { onAuthStateChanged } from 'firebase/auth'
-import { firebaseAuth, signOut } from './modules/firebase'
+import { firebaseAuth, signOut as signOutFirebase } from './modules/firebase'
 import { useToast } from 'primevue'
 import Logo from '@/assets/logo.svg?component'
 import { ArrowLeftStartOnRectangleIcon, Bars3Icon } from '@heroicons/vue/24/outline'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
-import PlantsDrawer from './components/PlantsDrawer.vue'
+import { usePlantsQuery } from './composables/usePlantsQuery'
+import { useSetupsQuery } from './composables/useSetupsQuery'
+import { useDownloadUrlQuery } from './composables/useDownloadUrlQuery'
 
 const route = useRoute()
 const router = useRouter()
@@ -44,9 +44,13 @@ const toast = useToast()
 
 const { user } = useFirebaseUser()
 
+const { invalidatePlantsQuery } = usePlantsQuery()
+const { invalidateSetupsQuery } = useSetupsQuery()
+const { invalidateDownloadUrls } = useDownloadUrlQuery()
+
 const isMenuOpen = ref(false)
 
-onAuthStateChanged(firebaseAuth, fbUser => {
+onAuthStateChanged(firebaseAuth, async fbUser => {
     const goToLogin = () => {
         if (route.name !== 'login') {
             router.push('/login')
@@ -68,6 +72,7 @@ onAuthStateChanged(firebaseAuth, fbUser => {
         signOut()
         goToLogin()
     } else if (route.name === 'login') {
+        await invalidateQueries()
         router.replace('/')
     }
 })
@@ -75,5 +80,13 @@ onAuthStateChanged(firebaseAuth, fbUser => {
 const onSignOutClick = async () => {
     await signOut()
     isMenuOpen.value = false
+}
+
+const invalidateQueries = () =>
+    Promise.all([invalidatePlantsQuery(), invalidateSetupsQuery(), invalidateDownloadUrls()])
+
+const signOut = async () => {
+    await invalidateQueries()
+    signOutFirebase()
 }
 </script>

@@ -1,4 +1,5 @@
 import './assets/main.css'
+import 'cropperjs/dist/cropper.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -8,12 +9,20 @@ import { ToastService } from 'primevue'
 import Lara from '@primeuix/themes/lara'
 import Tooltip from 'primevue/tooltip'
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import { experimental_createQueryPersister } from '@tanstack/query-persist-client-core'
+import VueCropper from 'vue-cropperjs'
 
 const app = createApp(App)
+
+const persister = experimental_createQueryPersister({
+    storage: window.localStorage
+})
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000
+            staleTime: Infinity,
+            persister: persister.persisterFn
         }
     }
 })
@@ -27,5 +36,8 @@ app.use(router)
     .use(VueQueryPlugin, { queryClient })
     .use(ToastService)
     .directive('tooltip', Tooltip)
+    .component('VueCropper', VueCropper)
 
 app.mount('#app')
+
+window.__TANSTACK_QUERY_CLIENT__ = queryClient
