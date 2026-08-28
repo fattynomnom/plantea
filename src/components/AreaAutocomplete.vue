@@ -1,6 +1,7 @@
 <template>
     <AutoComplete
         v-model.trim="modelValue"
+        :input-id="id"
         :suggestions="filteredAreas"
         fluid
         show-clear
@@ -15,8 +16,9 @@ import { computed } from 'vue'
 
 const modelValue = defineModel<string | undefined>('modelValue')
 
-const { placeholder } = defineProps<{
+const { placeholder, id } = defineProps<{
     placeholder?: string
+    id?: string
 }>()
 
 const { data: plants } = usePlantsQuery()

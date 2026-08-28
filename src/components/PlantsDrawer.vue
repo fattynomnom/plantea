@@ -2,7 +2,7 @@
     <Drawer v-model:visible="visible" :header="title" position="bottom">
         <form class="space-y-7 px-7 pb-7" @submit.prevent="onSubmit">
             <div class="space-y-6">
-                <div class="flex flex-col space-y-2">
+                <div class="form-input">
                     <label for="name-input">Name</label>
                     <input
                         id="name-input"
@@ -16,12 +16,33 @@
                     <small v-if="nameError" class="color-danger">{{ nameError }}</small>
                 </div>
 
-                <div v-if="allowArea" class="flex flex-col space-y-2">
-                    <label for="name-input">Area (optional)</label>
+                <div v-if="allowArea" class="form-input">
+                    <label for="area-input">Area (optional)</label>
                     <AreaAutocomplete
                         v-model="plant.area"
+                        id="area-input"
                         placeholder="Area which the plant is located in"
                     />
+                </div>
+
+                <div class="form-input">
+                    <label for="frequency-input">Watering frequency (days)</label>
+                    <div class="grid grid-cols-5 gap-2">
+                        <input
+                            v-model.trim="plant.frequencyDays"
+                            text="text"
+                            name="Watering frequency"
+                            autocomplete="off"
+                            class="p-inputtext col-span-3"
+                            inputmode="numeric"
+                            maxlength="10"
+                        />
+
+                        <CustomButton type="button" variant="outline" class="col-span-2">
+                            <SparklesIcon />
+                            <span>Auto generate</span>
+                        </CustomButton>
+                    </div>
                 </div>
 
                 <div class="flex flex-col">
@@ -129,7 +150,12 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowRightCircleIcon, PlusCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import {
+    ArrowRightCircleIcon,
+    PlusCircleIcon,
+    SparklesIcon,
+    TrashIcon
+} from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { computed, reactive, ref, watch } from 'vue'
@@ -140,7 +166,7 @@ import dayjs from 'dayjs'
 import { convertTextToDate } from '@/utils/date.utils'
 import type { Plant } from '@/models/plant'
 
-export interface PlantInput extends Pick<Plant, 'name' | 'area' | 'setup'> {
+export interface PlantInput extends Pick<Plant, 'name' | 'area' | 'setup' | 'frequencyDays'> {
     id?: string
     dates: Array<string | null>
 }
@@ -371,5 +397,9 @@ watch(visible, value => {
 
 .radio-container > label {
     @apply font-normal;
+}
+
+.form-input {
+    @apply flex flex-col space-y-2;
 }
 </style>
