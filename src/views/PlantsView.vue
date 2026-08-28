@@ -1,21 +1,23 @@
 <template>
     <main class="h-full space-y-7 px-7 pb-7 overflow-y-scroll">
-        <div class="space-y-3">
+        <div class="space-y-2">
             <h2>Quick actions</h2>
 
-            <CustomButton class="w-full" @click="isPlantsDrawerVisible = true">
-                <PlusIcon />
-                <span>Add plant</span>
-            </CustomButton>
+            <div class="flex space-x-2">
+                <CustomButton class="flex-1" @click="isPlantsDrawerVisible = true">
+                    <PlusIcon />
+                    <span>Add plant</span>
+                </CustomButton>
+
+                <CustomButton class="flex-1" @click="isPredictionOpen = true">
+                    <PlusIcon />
+                    <span>Add setup</span>
+                </CustomButton>
+            </div>
 
             <CustomButton class="w-full" @click="isPredictionOpen = true">
                 <SparklesIcon />
                 <span>Generate future predictions</span>
-            </CustomButton>
-
-            <CustomButton class="w-full" @click="isPredictionOpen = true">
-                <SparklesIcon />
-                <span>Add setup</span>
             </CustomButton>
         </div>
 
