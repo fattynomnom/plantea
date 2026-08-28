@@ -69,79 +69,18 @@
             </OnLongPress>
 
             <Transition name="opacity">
-                <div
+                <PlantCard
                     v-if="tooltipIndex === plantIndex"
-                    class="absolute rounded-2xl py-3 px-4 bg-color-default"
+                    class="absolute bg-color-default"
                     :style="{
                         ...tooltipYPosition[plantIndex],
                         width: `${PLANT_CONTAINER_WIDTH_PX}px`,
                         top: `${INDICATOR_WIDTH_PX}px`
                     }"
-                >
-                    <div
-                        v-if="plant.frequencyDays || plant.isWateredToday || plant.shouldBeWatered"
-                        class="flex flex-wrap gap-2 mb-3"
-                    >
-                        <Chip
-                            v-if="plant.frequencyDays"
-                            :label="`Every ${plant.frequencyDays} days`"
-                            data-color="sky"
-                        >
-                            <template #icon>
-                                <WaterDropletIcon />
-                            </template>
-                        </Chip>
-                        <Chip v-if="plant.isWateredToday" label="Watered" data-color="green">
-                            <template #icon>
-                                <CheckCircleIcon />
-                            </template>
-                        </Chip>
-                        <Chip
-                            v-else-if="plant.shouldBeWatered"
-                            label="Water today"
-                            data-color="red"
-                        >
-                            <template #icon>
-                                <ExclamationCircleIcon />
-                            </template>
-                        </Chip>
-                        <Chip
-                            v-else-if="plant.frequencyDays"
-                            :label="`Next ${dayjs(plant.nextWateringDate).diff(undefined, 'days')} day`"
-                            data-color="gray"
-                        >
-                            <template #icon>
-                                <FaucetIcon />
-                            </template>
-                        </Chip>
-                    </div>
-
-                    <div class="mb-4">
-                        <h3>{{ plant.name }} logs</h3>
-                        <ul v-if="plant.datetimes.length" class="grid grid-cols-2">
-                            <li
-                                v-for="datetimes in plant.datetimes.slice(0, 10)"
-                                :key="`${plant.id}-${datetimes}`"
-                                class="tracking-wider text-sm"
-                            >
-                                {{ dayjs(datetimes).format('DD/MM/YYYY') }}
-                            </li>
-                        </ul>
-                        <div v-else class="text-sm">No data recorded.</div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <CustomButton variant="outline" @click="$emit('edit', plant)">
-                            Edit
-                        </CustomButton>
-                        <CustomButton
-                            :is-disabled="plant.isWateredToday"
-                            @click="onCompleteWatering(plant)"
-                        >
-                            Water
-                        </CustomButton>
-                    </div>
-                </div>
+                    :plant="plant"
+                    @edit="$emit('edit', plant)"
+                    @water="onCompleteWatering(plant)"
+                />
             </Transition>
         </OnClickOutside>
     </div>
@@ -150,7 +89,7 @@
 <script setup lang="ts">
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { CheckIcon } from '@heroicons/vue/24/outline'
-import { CheckCircleIcon, ExclamationCircleIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
+import { ExclamationCircleIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
 import { OnLongPress, OnClickOutside } from '@vueuse/components'
 import { computed, ref, useTemplateRef, type CSSProperties } from 'vue'
 import CustomSpinner from '@/components/CustomSpinner.vue'
@@ -161,11 +100,7 @@ import type { Setup } from '@/models/setup'
 import { calculatePosition } from '@/utils/chartValues.utils'
 import type { ChartValues } from '@/types'
 import { useElementSize } from '@vueuse/core'
-import { Chip } from 'primevue'
-import WaterDropletIcon from '@/assets/icons/water-droplet.svg?component'
-import FaucetIcon from '@/assets/icons/faucet-drip.svg?component'
-import dayjs from 'dayjs'
-import CustomButton from './CustomButton.vue'
+import PlantCard from './PlantCard.vue'
 
 const PLANT_CONTAINER_WIDTH_PX = 300
 const PLANT_HALF_CONTAINER_WIDTH_PX = PLANT_CONTAINER_WIDTH_PX / 2
