@@ -32,6 +32,7 @@
                     :key="setup.id"
                     :setup="setup"
                     :plants="setup.plants"
+                    @edit="editPlant"
                 />
 
                 <PlantCardList

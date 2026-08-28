@@ -20,11 +20,12 @@ export const usePlantsDrawer = () => {
 
     const { displayGenericError } = useToast()
 
-    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes'>) => {
+    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup'>) => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.sort().map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
         plant.area = data.area
+        plant.setup = data.setup
 
         originalDatetimes.value = data.datetimes
 

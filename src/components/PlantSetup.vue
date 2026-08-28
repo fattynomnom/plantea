@@ -128,7 +128,9 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
-                        <CustomButton variant="outline">Edit</CustomButton>
+                        <CustomButton variant="outline" @click="$emit('edit', plant)">
+                            Edit
+                        </CustomButton>
                         <CustomButton
                             :is-disabled="plant.isWateredToday"
                             @click="onCompleteWatering(plant)"
@@ -170,6 +172,10 @@ const INDICATOR_OFFSET_PX = 20
 const { setup, plants } = defineProps<{
     setup: Setup
     plants: PlantWithSetup[]
+}>()
+
+defineEmits<{
+    (e: 'edit', value: PlantWithSetup): Promise<void>
 }>()
 
 const { data: downloadUrl } = useDownloadUrlQuery(setup.imgName)

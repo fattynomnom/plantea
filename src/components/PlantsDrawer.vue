@@ -140,7 +140,7 @@ import dayjs from 'dayjs'
 import { convertTextToDate } from '@/utils/date.utils'
 import type { Plant } from '@/models/plant'
 
-export interface PlantInput extends Pick<Plant, 'name' | 'area'> {
+export interface PlantInput extends Pick<Plant, 'name' | 'area' | 'setup'> {
     id?: string
     dates: Array<string | null>
 }
@@ -158,7 +158,8 @@ const plant = reactive<PlantInput>({
     id: undefined,
     name: '',
     dates: [],
-    area: undefined
+    area: undefined,
+    setup: undefined
 })
 
 const visible = defineModel<boolean>('visible', { required: true })
@@ -358,6 +359,7 @@ watch(visible, value => {
         plant.name = initialValue.name
         plant.dates = initialValue.dates
         plant.area = initialValue.area
+        plant.setup = initialValue.setup
     }
 })
 </script>
