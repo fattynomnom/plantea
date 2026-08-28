@@ -1,5 +1,5 @@
 <template>
-    <div class="rounded-2xl py-3 px-4">
+    <div class="rounded-2xl py-3 px-4 flex flex-col">
         <div
             v-if="plant.frequencyDays || plant.isWateredToday || plant.shouldBeWatered"
             class="flex flex-wrap gap-2 mb-3"
@@ -34,7 +34,7 @@
             </Chip>
         </div>
 
-        <div class="mb-4">
+        <div class="mb-4 flex-1">
             <slot />
         </div>
 
