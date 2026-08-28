@@ -50,7 +50,11 @@
 
         <div class="grid grid-cols-2 gap-2">
             <CustomButton variant="outline" @click="$emit('edit')">Edit</CustomButton>
-            <CustomButton :is-disabled="plant.isWateredToday" @click="$emit('water')">
+            <CustomButton
+                :is-disabled="plant.isWateredToday"
+                :is-loading="isWatering"
+                @click="$emit('water')"
+            >
                 Water
             </CustomButton>
         </div>
@@ -66,7 +70,7 @@ import FaucetIcon from '@/assets/icons/faucet-drip.svg?component'
 import CustomButton from './CustomButton.vue'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/vue/24/solid'
 
-const { plant } = defineProps<{
+const { plant, isWatering } = defineProps<{
     plant: Pick<
         Plant,
         | 'frequencyDays'
@@ -77,6 +81,7 @@ const { plant } = defineProps<{
         | 'datetimes'
         | 'id'
     >
+    isWatering: boolean
 }>()
 
 defineEmits<{

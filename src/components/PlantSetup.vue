@@ -78,6 +78,9 @@
                         top: `${INDICATOR_WIDTH_PX}px`
                     }"
                     :plant="plant"
+                    :is-watering="
+                        tooltipIndex === plantIndex && wateringHeightPx > 0 && !plant.isWateredToday
+                    "
                     @edit="$emit('edit', plant)"
                     @water="onCompleteWatering(plant)"
                 />
