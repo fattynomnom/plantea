@@ -41,9 +41,7 @@ import { ArrowLeftStartOnRectangleIcon, ArrowPathIcon, Bars3Icon } from '@heroic
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
-import { usePlantsQuery } from './composables/usePlantsQuery'
 import { useSetupsQuery } from './composables/useSetupsQuery'
-import { useDownloadUrlQuery } from './composables/useDownloadUrlQuery'
 import { useToast } from './composables/useToast'
 
 const route = useRoute()
@@ -53,9 +51,7 @@ const { displayGenericError, displayToast } = useToast()
 
 const { user } = useFirebaseUser()
 
-const { invalidatePlantsQuery } = usePlantsQuery()
 const { invalidateSetupsQuery } = useSetupsQuery()
-const { invalidateDownloadUrls } = useDownloadUrlQuery()
 
 const isMenuOpen = ref(false)
 
@@ -81,7 +77,7 @@ onAuthStateChanged(firebaseAuth, async fbUser => {
         signOut()
         goToLogin()
     } else if (route.name === 'login') {
-        await invalidateQueries()
+        await invalidateSetupsQuery()
         router.replace('/')
     }
 })
@@ -91,11 +87,8 @@ const onSignOutClick = async () => {
     isMenuOpen.value = false
 }
 
-const invalidateQueries = () =>
-    Promise.all([invalidatePlantsQuery(), invalidateSetupsQuery(), invalidateDownloadUrls()])
-
 const signOut = async () => {
-    await invalidateQueries()
+    await invalidateSetupsQuery()
     signOutFirebase()
 }
 
@@ -106,7 +99,7 @@ const onRefreshClick = async () => {
     isRefreshing.value = true
 
     try {
-        await invalidateQueries()
+        await invalidateSetupsQuery()
         displayToast({
             severity: 'success',
             summary: 'Data refreshed',

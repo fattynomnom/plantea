@@ -3,6 +3,7 @@ import { useFirebaseUser } from './useFirebaseUser'
 import { computed } from 'vue'
 import { fetchSetups } from '@/models/setup'
 import { usePlantsQuery } from './usePlantsQuery'
+import { useDownloadUrlQuery } from './useDownloadUrlQuery'
 
 const setupsQueryKey = ['setups']
 
@@ -10,6 +11,8 @@ export const useSetupsQuery = () => {
     const { user } = useFirebaseUser()
 
     const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
+
+    const { invalidateDownloadUrls } = useDownloadUrlQuery()
 
     const queryClient = useQueryClient()
 
@@ -44,6 +47,7 @@ export const useSetupsQuery = () => {
         invalidateSetupsQuery: async () => {
             // invalidate and wait for plants query to load because this query is dependant on that query
             await invalidatePlantsQuery()
+            invalidateDownloadUrls()
             queryClient.invalidateQueries({ queryKey: setupsQueryKey })
         }
     }
