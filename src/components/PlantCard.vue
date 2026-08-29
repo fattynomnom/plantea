@@ -25,7 +25,7 @@
             </Chip>
             <Chip
                 v-else-if="plant.frequencyDays"
-                :label="`Next ${dayjs(plant.nextWateringDate).diff(undefined, 'days')} day`"
+                :label="`Next ${pluralize(dayjs(plant.nextWateringDate).diff(undefined, 'days'), 'day', 'days')}`"
                 data-color="gray"
             >
                 <template #icon>
@@ -59,6 +59,7 @@ import WaterDropletIcon from '@/assets/icons/water-droplet.svg?component'
 import FaucetIcon from '@/assets/icons/faucet-drip.svg?component'
 import CustomButton from './CustomButton.vue'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/vue/24/solid'
+import { pluralize } from '@/utils/string.utils'
 
 const { plant, isWatering } = defineProps<{
     plant: Pick<Plant, 'frequencyDays' | 'isWateredToday' | 'shouldBeWatered' | 'nextWateringDate'>
