@@ -84,17 +84,7 @@
                     @edit="$emit('edit', plant)"
                     @water="onCompleteWatering(plant)"
                 >
-                    <h3>{{ plant.name }} logs</h3>
-                    <ul v-if="plant.datetimes.length" class="grid grid-cols-2">
-                        <li
-                            v-for="datetimes in plant.datetimes.slice(0, 10)"
-                            :key="`${plant.id}-${datetimes}`"
-                            class="tracking-wider text-sm"
-                        >
-                            {{ dayjs(datetimes).format('DD/MM/YYYY') }}
-                        </li>
-                    </ul>
-                    <div v-else class="text-sm">No data recorded.</div>
+                    <h3>{{ plant.name }}</h3>
                 </PlantCard>
             </Transition>
         </OnClickOutside>
@@ -116,7 +106,6 @@ import { calculatePosition } from '@/utils/chartValues.utils'
 import type { ChartValues } from '@/types'
 import { useElementSize } from '@vueuse/core'
 import PlantCard from './PlantCard.vue'
-import dayjs from 'dayjs'
 
 const PLANT_CONTAINER_WIDTH_PX = 300
 const PLANT_HALF_CONTAINER_WIDTH_PX = PLANT_CONTAINER_WIDTH_PX / 2
