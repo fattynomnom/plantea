@@ -71,7 +71,7 @@
             <Transition name="opacity">
                 <PlantCard
                     v-if="tooltipIndex === plantIndex"
-                    class="absolute bg-color-default"
+                    class="absolute bg-color-default z-10"
                     :style="{
                         ...tooltipYPosition[plantIndex],
                         width: `${PLANT_CONTAINER_WIDTH_PX}px`,
