@@ -9,7 +9,7 @@
                     <span>Add plant</span>
                 </CustomButton>
 
-                <CustomButton class="flex-1" @click="isPredictionOpen = true">
+                <CustomButton class="flex-1" @click="$router.push('/create')">
                     <PlusIcon />
                     <span>Add setup</span>
                 </CustomButton>
