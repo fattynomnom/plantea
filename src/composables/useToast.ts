@@ -1,4 +1,4 @@
-import { useToast as usePrimeVueToast } from 'primevue'
+import { type ToastMessageOptions, useToast as usePrimeVueToast } from 'primevue'
 
 export const useToast = () => {
     const toast = usePrimeVueToast()
@@ -11,5 +11,9 @@ export const useToast = () => {
         })
     }
 
-    return { displayGenericError }
+    const displayToast = (options: ToastMessageOptions) => {
+        toast.add(options)
+    }
+
+    return { displayGenericError, displayToast }
 }

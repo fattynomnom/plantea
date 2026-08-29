@@ -265,7 +265,16 @@ label {
 }
 
 .p-toast-message {
-    @apply rounded-2xl bg-red-300 text-red-900 !important;
+    @apply rounded-2xl !important;
+}
+
+.p-toast-message-error {
+    color: var(--color-danger) !important;
+    @apply bg-red-300 !important;
+}
+
+.p-toast-message-success {
+    color: var(--color-primary) !important;
 }
 
 div[data-pc-name='toast'] span[data-pc-section='summary'] {
