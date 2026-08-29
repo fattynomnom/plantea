@@ -25,7 +25,7 @@
             </Chip>
             <Chip
                 v-else-if="plant.frequencyDays"
-                :label="`Next ${pluralize(dayjs(plant.nextWateringDate).diff(undefined, 'days'), 'day', 'days')}`"
+                :label="`Next ${pluralize(dayjs(plant.nextWateringDate).diff(undefined, 'days') + 1, 'day', 'days')}`"
                 data-color="gray"
             >
                 <template #icon>
