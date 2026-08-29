@@ -78,7 +78,7 @@ const plantConverter: FirestoreDataConverter<Plant, DbPlant> = {
         const datetimes = data.dates.map(({ seconds }) => seconds * 1000).sort((a, b) => b - a)
         const nextWateringDate =
             datetimes[0] && data.frequencyDays
-                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days').unix()
+                ? dayjs(datetimes[0]).add(data.frequencyDays, 'days').unix() * 1000
                 : undefined
 
         const isWateredToday = datetimes.includes(todayDateTime)
