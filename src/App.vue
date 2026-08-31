@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col h-screen overflow-y-hidden transition-colors">
         <div class="flex justify-between items-center p-7">
-            <Logo class="h-10 w-10" />
+            <Logo class="h-10 w-10" @click="router.push('/')" />
             <div class="flex space-x-4">
                 <ArrowPathIcon
                     :class="{
