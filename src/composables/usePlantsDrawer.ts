@@ -10,7 +10,8 @@ const plant = reactive<PlantInput>({
     id: undefined,
     name: '',
     dates: [null],
-    area: undefined
+    area: undefined,
+    frequencyDays: undefined
 })
 
 export const usePlantsDrawer = () => {
@@ -26,12 +27,15 @@ export const usePlantsDrawer = () => {
         isPlantsDrawerVisible.value = true
     }
 
-    const openEditDrawer = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup'>) => {
+    const openEditDrawer = (
+        data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup' | 'frequencyDays'>
+    ) => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.sort().map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
         plant.area = data.area
         plant.setup = data.setup
+        plant.frequencyDays = data.frequencyDays
 
         originalDatetimes.value = data.datetimes
 
@@ -43,6 +47,8 @@ export const usePlantsDrawer = () => {
         plant.name = ''
         plant.dates = [null]
         plant.area = undefined
+        plant.setup = undefined
+        plant.frequencyDays = undefined
 
         originalDatetimes.value = undefined
     }

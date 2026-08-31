@@ -46,7 +46,7 @@
                             @click="onAutoGenerateClick"
                         >
                             <SparklesIcon />
-                            <span>Auto generate</span>
+                            <span>Generate</span>
                         </CustomButton>
                     </div>
                 </div>
@@ -485,6 +485,7 @@ watch(visible, value => {
         plant.dates = initialValue.dates.length ? initialValue.dates : [null]
         plant.area = initialValue.area
         plant.setup = initialValue.setup
+        plant.frequencyDays = initialValue.frequencyDays
     }
 })
 </script>
