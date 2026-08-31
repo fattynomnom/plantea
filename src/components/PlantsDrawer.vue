@@ -164,29 +164,14 @@
         </form>
     </Drawer>
 
-    <Dialog v-model:visible="deleteConfirmVisible" modal header="Delete plant">
-        <div class="space-y-7">
-            <p>
-                Are you sure you want to delete this plant and all of its data? If this plant
-                belongs to a setup and is the only plant in the setup, the entire setup will be
-                deleted.
-            </p>
-            <div class="flex justify-between space-x-2">
-                <CustomButton
-                    type="button"
-                    variant="outline"
-                    :is-loading="isDeleting"
-                    @click="deleteConfirmVisible = false"
-                >
-                    Cancel
-                </CustomButton>
-                <CustomButton type="button" :is-loading="isDeleting" @click="onDeleteConfirm">
-                    <span>Delete</span>
-                    <TrashIcon />
-                </CustomButton>
-            </div>
-        </div>
-    </Dialog>
+    <DeleteConfirmationDialog
+        v-model:visible="deleteConfirmVisible"
+        :is-loading="isDeleting"
+        @confirm="onDeleteConfirm"
+    >
+        Are you sure you want to delete this plant and all of its data? If this plant belongs to a
+        setup and is the only plant in the setup, the entire setup will be deleted.
+    </DeleteConfirmationDialog>
 </template>
 
 <script setup lang="ts">
@@ -197,9 +182,10 @@ import {
     TrashIcon
 } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog.vue'
 import Drawer from 'primevue/drawer'
 import { computed, reactive, ref, watch } from 'vue'
-import { Dialog, RadioButton, Select } from 'primevue'
+import { RadioButton, Select } from 'primevue'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import AreaAutocomplete from './AreaAutocomplete.vue'
 import dayjs from 'dayjs'
