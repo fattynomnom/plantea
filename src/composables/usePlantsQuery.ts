@@ -12,7 +12,6 @@ export type PlantWithSetup = Omit<Plant, 'setup' | 'area'> & Required<Pick<Plant
 interface Data {
     singlePlants: SinglePlant[]
     plantsWithSetup: PlantWithSetup[]
-    areas: Record<string, number>
 }
 
 export const usePlantsQuery = () => {
@@ -27,23 +26,14 @@ export const usePlantsQuery = () => {
             queryFn: async () => {
                 const plants = await fetchAndPurgePlants()
 
-                const { singlePlants, plantsWithSetup, areas } = plants.reduce<Data>(
-                    (acc, { setup, ...plant }) => {
-                        const area = plant.area?.trim()
-                        const accAreaPlantCount = area ? (acc.areas[area] ?? 0) : 0
-                        if (area) {
-                            acc.areas[area] = accAreaPlantCount + 1
-                        }
-
-                        return {
-                            singlePlants: setup ? acc.singlePlants : acc.singlePlants.concat(plant),
-                            plantsWithSetup: setup
-                                ? acc.plantsWithSetup.concat({ ...plant, setup })
-                                : acc.plantsWithSetup,
-                            areas: acc.areas
-                        }
-                    },
-                    { singlePlants: [], plantsWithSetup: [], areas: {} }
+                const { singlePlants, plantsWithSetup } = plants.reduce<Data>(
+                    (acc, { setup, ...plant }) => ({
+                        singlePlants: setup ? acc.singlePlants : acc.singlePlants.concat(plant),
+                        plantsWithSetup: setup
+                            ? acc.plantsWithSetup.concat({ ...plant, setup })
+                            : acc.plantsWithSetup
+                    }),
+                    { singlePlants: [], plantsWithSetup: [] }
                 )
 
                 singlePlants.sort((a, b) => {
@@ -59,8 +49,7 @@ export const usePlantsQuery = () => {
 
                 return {
                     singlePlants,
-                    plantsWithSetup,
-                    areas
+                    plantsWithSetup
                 }
             }
         }),

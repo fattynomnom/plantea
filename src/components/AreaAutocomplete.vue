@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { usePlantsQuery } from '@/composables/usePlantsQuery'
+import { useAreas } from '@/composables/useAreas'
 import { AutoComplete } from 'primevue'
 import { computed } from 'vue'
 
@@ -21,17 +21,12 @@ const { placeholder, id } = defineProps<{
     id?: string
 }>()
 
-const { data: plants } = usePlantsQuery()
+const { areas } = useAreas()
 
 const filteredAreas = computed(() => {
-    if (!plants.value?.areas) {
-        return []
-    }
-
     const value = modelValue.value?.toLowerCase()
     if (value) {
-        const areas = Object.keys(plants.value.areas)
-        return areas.filter(area => area.toLowerCase().includes(value))
+        return areas.value.filter(area => area.toLowerCase().includes(value))
     }
 
     return []

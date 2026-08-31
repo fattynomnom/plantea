@@ -82,6 +82,7 @@ import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import PlantSetup from '@/components/PlantSetup.vue'
 import PlantsDrawer from '@/components/PlantsDrawer.vue'
 import PlantCard from '@/components/PlantCard.vue'
+import { useAreas } from '@/composables/useAreas'
 
 const { user } = useFirebaseUser()
 
@@ -96,6 +97,8 @@ const {
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
 const { data: setups, invalidateSetupsQuery } = useSetupsQuery()
+
+const { areaPlantsCountMap } = useAreas()
 
 const { displayGenericError, displayToast } = useToast()
 
@@ -166,7 +169,7 @@ const areaPlantsCount = computed<Record<string, number>>(() => {
         const totalUnassignedPlants = unassignedSetupPlants.length + unassignedSinglePlants.length
 
         return {
-            ...plants.value.areas,
+            ...areaPlantsCountMap.value,
             ...(totalUnassignedPlants && { Unassigned: totalUnassignedPlants })
         }
     }
