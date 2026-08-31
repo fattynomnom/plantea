@@ -145,7 +145,17 @@
                 </div>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex justify-between">
+                <CustomButton
+                    v-if="allowDelete"
+                    type="button"
+                    variant="outline"
+                    @click="deleteConfirmVisible = true"
+                >
+                    <TrashIcon />
+                    <span>Delete</span>
+                </CustomButton>
+                <div v-else />
                 <CustomButton type="submit" :is-loading="isLoading">
                     <span>Save</span>
                     <ArrowRightCircleIcon />
@@ -153,6 +163,30 @@
             </div>
         </form>
     </Drawer>
+
+    <Dialog v-model:visible="deleteConfirmVisible" modal header="Delete plant">
+        <div class="space-y-7">
+            <p>
+                Are you sure you want to delete this plant and all of its data? If this plant
+                belongs to a setup and is the only plant in the setup, the entire setup will be
+                deleted.
+            </p>
+            <div class="flex justify-between space-x-2">
+                <CustomButton
+                    type="button"
+                    variant="outline"
+                    :is-loading="isDeleting"
+                    @click="deleteConfirmVisible = false"
+                >
+                    Cancel
+                </CustomButton>
+                <CustomButton type="button" :is-loading="isDeleting" @click="onDeleteConfirm">
+                    <span>Delete</span>
+                    <TrashIcon />
+                </CustomButton>
+            </div>
+        </div>
+    </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -165,13 +199,14 @@ import {
 import CustomButton from '@/components/CustomButton.vue'
 import Drawer from 'primevue/drawer'
 import { computed, reactive, ref, watch } from 'vue'
-import { RadioButton, Select } from 'primevue'
+import { Dialog, RadioButton, Select } from 'primevue'
 import { usePlantsQuery } from '@/composables/usePlantsQuery'
 import AreaAutocomplete from './AreaAutocomplete.vue'
 import dayjs from 'dayjs'
 import { convertTextToDate, convertTextsToDates, convertTextsToDatetimes } from '@/utils/date.utils'
-import { genPlantAnalysis, type Plant } from '@/models/plant'
+import { deletePlant, genPlantAnalysis, type Plant } from '@/models/plant'
 import { useToast } from '@/composables/useToast'
+import { useSetupsQuery } from '@/composables/useSetupsQuery'
 
 export interface PlantInput extends Pick<Plant, 'name' | 'area' | 'setup' | 'frequencyDays'> {
     id?: string
@@ -199,6 +234,7 @@ const visible = defineModel<boolean>('visible', { required: true })
 
 const {
     allowArea = true,
+    allowDelete = true,
     isLoading = false,
     title,
     initialValue = {
@@ -209,6 +245,7 @@ const {
     }
 } = defineProps<{
     allowArea?: boolean
+    allowDelete?: boolean
     isLoading?: boolean
     title: string
     initialValue?: PlantInput
@@ -216,9 +253,11 @@ const {
 
 const emit = defineEmits<{
     (e: 'submit', data: PlantOutput): Promise<void>
+    (e: 'delete'): Promise<void>
 }>()
 
 const { data: plants } = usePlantsQuery()
+const { data: setups } = useSetupsQuery()
 
 const { displayGenericError } = useToast()
 
@@ -377,6 +416,44 @@ const onAutoGenerateClick = async () => {
         displayGenericError()
     } finally {
         isAutoGenerating.value = false
+    }
+}
+// #endregion
+
+// #region delete
+const deleteConfirmVisible = ref(false)
+const isDeleting = ref(false)
+
+const onDeleteConfirm = async () => {
+    if (!plant.id) {
+        return
+    }
+
+    isDeleting.value = true
+
+    try {
+        const setupId = plant.setup?.id
+        const setup = setupId ? setups.value?.find(({ id }) => id === setupId) : null
+
+        await deletePlant(
+            plant.id,
+            setup
+                ? {
+                      id: setup.id,
+                      imgName: setup.imgName,
+                      plantsCount: setup.plants.length
+                  }
+                : null
+        )
+
+        deleteConfirmVisible.value = false
+
+        emit('delete')
+    } catch (error) {
+        console.log('Delete error', error)
+        displayGenericError()
+    } finally {
+        isDeleting.value = false
     }
 }
 // #endregion

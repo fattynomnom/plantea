@@ -64,6 +64,7 @@
         :initial-value="plant"
         :title="plant.id ? 'Edit plant' : 'Add new plant'"
         @submit="onSubmitPlantForm"
+        @delete="onDeletePlant"
     />
 </template>
 
@@ -96,9 +97,9 @@ const {
 
 const { data: plants, invalidatePlantsQuery } = usePlantsQuery()
 
-const { data: setups } = useSetupsQuery()
+const { data: setups, invalidateSetupsQuery } = useSetupsQuery()
 
-const { displayGenericError } = useToast()
+const { displayGenericError, displayToast } = useToast()
 
 const hasPlants = computed(() =>
     Boolean(plants.value?.singlePlants.length || plants.value?.plantsWithSetup.length)
@@ -123,6 +124,18 @@ const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: n
     } finally {
         isWateringLoading.value[index] = false
     }
+}
+
+const onDeletePlant = async () => {
+    isPlantsDrawerVisible.value = false
+
+    displayToast({
+        severity: 'success',
+        summary: 'Plant deleted.',
+        life: 3000
+    })
+
+    invalidateSetupsQuery()
 }
 
 watch(

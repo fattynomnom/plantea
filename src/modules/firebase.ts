@@ -25,6 +25,7 @@ import {
     type FirestoreDataConverter,
     Firestore,
     setDoc,
+    deleteDoc as firestoreDeleteDoc,
     writeBatch
 } from '@firebase/firestore/lite'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
@@ -207,6 +208,19 @@ export const updateDoc = async <
 
     const ref = getDocRef(collectionConfig, data.id)
     await setDoc(ref, data)
+}
+
+export const deleteDoc = async <
+    AppModelType extends object,
+    DbModelType extends DocumentData
+>(
+    collectionConfig: CollectionConfig<AppModelType, DbModelType>,
+    docId: string
+) => {
+    console.log('Delete doc:', docId)
+
+    const ref = getDocRef(collectionConfig, docId)
+    await firestoreDeleteDoc(ref)
 }
 
 const batchSetDocs = async <AppModelType extends object, DbModelType extends DocumentData>(

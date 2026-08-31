@@ -68,6 +68,7 @@
             v-model:visible="isDrawerVisible"
             :initial-value="selectedPlant"
             :allow-area="false"
+            :allow-delete="false"
             title="Plant details"
             @submit="onSubmitPlantDrawer"
         />

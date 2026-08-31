@@ -573,3 +573,16 @@ div[data-pc-name='fileupload']:has(img[data-file='true']) div[data-pc-section='c
     @apply text-xs !important;
 }
 /* #endregion */
+
+/* #region PrimeVue dialog */
+.p-dialog {
+    background-color: var(--bg-color) !important;
+    color: var(--font-color) !important;
+    font-family: var(--font-accent) !important;
+    @apply rounded-2xl mx-7 border-none !important;
+}
+
+.p-dialog .p-button-text {
+    color: var(--font-color) !important;
+}
+/* #endregion */

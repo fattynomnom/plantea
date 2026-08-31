@@ -4,7 +4,8 @@ import {
     uploadFile,
     fetchCollection,
     deleteFile,
-    updateDoc
+    updateDoc,
+    deleteDoc
 } from '@/modules/firebase'
 import {
     QueryDocumentSnapshot,
@@ -33,6 +34,8 @@ interface DbSetup {
 }
 
 type AddSetupInput = Pick<Setup, 'imgName' | 'area'>
+
+export type DeleteSetupInput = Pick<Setup, 'id' | 'imgName'>
 
 // #region firebase functions
 const SETUP_PATHS = ['setups']
@@ -64,6 +67,11 @@ const createSetup = (data: AddSetupInput) =>
     createDoc<AddSetupInput, DbSetup>(setupCollectionConfig, data)
 
 const updateSetup = (data: Setup) => updateDoc<Setup, DbSetup>(setupCollectionConfig, data)
+
+export const deleteSetup = async (data: DeleteSetupInput) => {
+    await deleteDoc(setupCollectionConfig, data.id)
+    await deleteFile(data.imgName)
+}
 // #endregion
 
 // #region logical functions

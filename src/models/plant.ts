@@ -5,7 +5,8 @@ import {
     type CollectionConfig,
     genAi,
     batchUpdateDocs,
-    batchCreateDocs
+    batchCreateDocs,
+    deleteDoc
 } from '@/modules/firebase'
 import type { ChartValues } from '@/types'
 import dayjs from 'dayjs'
@@ -15,6 +16,7 @@ import {
     type FirestoreDataConverter,
     type WithFieldValue
 } from 'firebase/firestore/lite'
+import { deleteSetup, type DeleteSetupInput } from './setup'
 
 export interface PlantSetup {
     id: string
@@ -44,6 +46,10 @@ interface DbPlant {
 export type AddPlantInput = Pick<Plant, 'name' | 'datetimes' | 'area' | 'frequencyDays' | 'setup'>
 
 export type UpdatePlantInput = AddPlantInput & Pick<Plant, 'id'>
+
+interface DeletePlantSetupInput extends DeleteSetupInput {
+    plantsCount: number
+}
 
 // #region firebase functions
 const PLANT_PATHS = ['plants']
@@ -108,6 +114,14 @@ export const createPlant = (data: AddPlantInput) =>
     createDoc<AddPlantInput, DbPlant>(plantCollectionConfig, data)
 
 export const updatePlant = (data: UpdatePlantInput) => updateDoc(plantCollectionConfig, data)
+
+export const deletePlant = async (id: Plant['id'], setup: DeletePlantSetupInput | null) => {
+    await deleteDoc(plantCollectionConfig, id)
+
+    if (setup && setup.plantsCount <= 1) {
+        await deleteSetup(setup)
+    }
+}
 
 export const batchCreatePlants = (data: AddPlantInput[]) =>
     batchCreateDocs<AddPlantInput, DbPlant>(plantCollectionConfig, data)
