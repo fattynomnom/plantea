@@ -145,7 +145,7 @@ const { displayGenericError } = useToast()
 
 const { invalidateSetupsQuery } = useSetupsQuery()
 
-const setup = ref<PlantSetupFormData>(initialSetup)
+const setup = ref<PlantSetupFormData>(structuredClone(initialSetup))
 
 const isNextDisabled = computed(() => {
     const hasNoPlants = (setup.value?.plants.length ?? 0) === 0
@@ -279,8 +279,10 @@ const onDeleteConfirm = async () => {
 
 watch(
     () => initialSetup,
-    value => {
-        setup.value = value
+    (newValue, oldValue) => {
+        if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+            setup.value = structuredClone(newValue)
+        }
     },
     { immediate: true }
 )
