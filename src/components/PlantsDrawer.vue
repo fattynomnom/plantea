@@ -30,7 +30,7 @@
                     <div class="grid grid-cols-5 gap-2">
                         <input
                             v-model.trim="plant.frequencyDays"
-                            text="text"
+                            type="number"
                             name="Watering frequency"
                             autocomplete="off"
                             class="p-inputtext col-span-3"
@@ -98,7 +98,7 @@
                             >
                                 <input
                                     :value="plant.dates[index]"
-                                    text="text"
+                                    type="text"
                                     :name="`Plant date ${index}`"
                                     autocomplete="off"
                                     placeholder="DD/MM/YYYY"

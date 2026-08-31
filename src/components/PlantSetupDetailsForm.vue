@@ -99,6 +99,7 @@ export interface PlantSetupDetailsFormData {
     color: string
     name: string
     dates: Date[]
+    frequencyDays?: number
 }
 
 export type PlantSetupDetailsFormAddEmitterValue = Pick<
@@ -220,6 +221,7 @@ const onSubmitPlantDrawer = (plant: PlantOutput) => {
         if (plantData) {
             plantData.name = plant.name
             plantData.dates = plant.dates
+            plantData.frequencyDays = plant.frequencyDays
             isDrawerVisible.value = false
         }
     }
