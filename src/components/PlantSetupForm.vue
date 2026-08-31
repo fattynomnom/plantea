@@ -145,7 +145,10 @@ const { displayGenericError } = useToast()
 
 const { invalidateSetupsQuery } = useSetupsQuery()
 
-const setup = ref<PlantSetupFormData>(structuredClone(initialSetup))
+const setup = ref<PlantSetupFormData>({
+    ...initialSetup,
+    plants: [...initialSetup.plants]
+})
 
 const isNextDisabled = computed(() => {
     const hasNoPlants = (setup.value?.plants.length ?? 0) === 0
@@ -281,7 +284,10 @@ watch(
     () => initialSetup,
     (newValue, oldValue) => {
         if (JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
-            setup.value = structuredClone(newValue)
+            setup.value = {
+                ...newValue,
+                plants: [...newValue.plants]
+            }
         }
     },
     { immediate: true }
