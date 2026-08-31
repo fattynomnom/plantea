@@ -19,8 +19,7 @@
             :key="plant.name + plantIndex"
             :class="`absolute flex flex-col items-center space-y-5 plant-${plant.id}`"
             :style="{
-                ...plantPosition[plantIndex],
-                width: `${PLANT_CONTAINER_WIDTH_PX}px`
+                ...plantPosition[plantIndex]
             }"
             :options="{
                 ignore: tooltipIgnoredEls[plantIndex]
@@ -74,8 +73,7 @@
                     class="absolute bg-color-default z-10"
                     :style="{
                         ...tooltipYPosition[plantIndex],
-                        width: `${PLANT_CONTAINER_WIDTH_PX}px`,
-                        top: `${INDICATOR_WIDTH_PX}px`
+                        width: `${PLANT_CONTAINER_WIDTH_PX}px`
                     }"
                     :plant="plant"
                     :is-watering="
@@ -108,6 +106,7 @@ import { useElementSize } from '@vueuse/core'
 import PlantCard from './PlantCard.vue'
 
 const PLANT_CONTAINER_WIDTH_PX = 300
+const PLANT_CONTAINER_HEIGHT_PX = 154
 const PLANT_HALF_CONTAINER_WIDTH_PX = PLANT_CONTAINER_WIDTH_PX / 2
 const INDICATOR_WIDTH_PX = 50
 const INDICATOR_OFFSET_PX = 20
@@ -140,14 +139,44 @@ const plantCoordinates = computed<Array<ChartValues | undefined>>(() =>
 )
 
 const plantPosition = computed<Array<CSSProperties | undefined>>(() =>
-    plantCoordinates.value.map(position =>
-        position
-            ? {
-                  left: `${position.x - PLANT_HALF_CONTAINER_WIDTH_PX}px`,
-                  top: `${position.y - INDICATOR_OFFSET_PX}px`
-              }
-            : undefined
-    )
+    plantCoordinates.value.map(position => {
+        if (position) {
+            const style: CSSProperties = {}
+
+            // handle if indicator is too far right until it overflows
+            const xEndPosition = position.x + INDICATOR_WIDTH_PX
+            if (xEndPosition > imgDimensions.width.value) {
+                style.right = `${INDICATOR_OFFSET_PX}px`
+            } else {
+                style.left = `${position.x}px`
+            }
+
+            // handle if indicator is too far up until it overflows
+            const yStartPosition = position.y - INDICATOR_WIDTH_PX / 2
+            if (yStartPosition < 0) {
+                return {
+                    ...style,
+                    top: '0px'
+                }
+            }
+
+            // handle if indicator is too far down until it overflows
+            const yEndPosition = position.y + INDICATOR_WIDTH_PX / 2
+            if (yEndPosition > imgDimensions.height.value) {
+                return {
+                    ...style,
+                    bottom: '0px'
+                }
+            }
+
+            return {
+                ...style,
+                top: `${position.y - INDICATOR_OFFSET_PX}px`
+            }
+        }
+
+        return undefined
+    })
 )
 
 const tooltipYPosition = computed<Array<CSSProperties | undefined>>(() =>
@@ -156,23 +185,26 @@ const tooltipYPosition = computed<Array<CSSProperties | undefined>>(() =>
             return undefined
         }
 
-        if (position.x + PLANT_HALF_CONTAINER_WIDTH_PX > imgDimensions.width.value) {
-            const overflow = position.x + PLANT_HALF_CONTAINER_WIDTH_PX - imgDimensions.width.value
+        const style: CSSProperties = {}
 
-            return { left: `-${overflow}px` }
+        // if tooltip overflows to the right
+        if (position.x + PLANT_HALF_CONTAINER_WIDTH_PX > imgDimensions.width.value) {
+            style.right = `-${INDICATOR_WIDTH_PX / 2}px`
         }
 
         if (position.x - PLANT_HALF_CONTAINER_WIDTH_PX < 0) {
-            const overflow = -(
-                position.x -
-                PLANT_HALF_CONTAINER_WIDTH_PX -
-                (imageRef.value?.clientLeft ?? 0)
-            )
-
-            return { left: `${overflow}px` }
+            style.left = `-${position.x}px`
         }
 
-        return {}
+        // if tooltip overflows below img
+        const tooltipYStartPosition = position.y + INDICATOR_WIDTH_PX / 2 + INDICATOR_OFFSET_PX
+        if (tooltipYStartPosition > imgDimensions.height.value) {
+            style.top = `-${INDICATOR_WIDTH_PX + PLANT_CONTAINER_HEIGHT_PX}px`
+        } else {
+            style.top = `${INDICATOR_WIDTH_PX}px`
+        }
+
+        return style
     })
 )
 
