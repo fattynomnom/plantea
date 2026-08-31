@@ -1,5 +1,5 @@
 <template>
-    <main class="h-full space-y-5 px-7 pb-7 overflow-y-scroll">
+    <main class="h-full w-full space-y-5 px-7 pb-7 overflow-y-scroll overflow-x-hidden">
         <h2>Which plants have you watered today?</h2>
 
         <div class="space-y-3">
