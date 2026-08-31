@@ -140,7 +140,7 @@
                         optionGroupChildren="items"
                         placeholder="Select an existing plant"
                         class="p-inputtext mt-4"
-                        @update:model-value="importPlantDates"
+                        @update:model-value="importPlantDatesAndFrequency"
                     />
                 </div>
             </div>
@@ -331,10 +331,11 @@ const resetErrors = () => {
 // #region dates
 const isManualAddDate = ref(true)
 
-const importPlantDates = ({ value: plantId }: Pick<Option, 'value'>) => {
-    const datetimes = allPlants.value.find(({ id }) => id === plantId)?.datetimes
-    if (datetimes) {
-        plant.dates = datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
+const importPlantDatesAndFrequency = ({ value: plantId }: Pick<Option, 'value'>) => {
+    const existingPlant = allPlants.value.find(({ id }) => id === plantId)
+    if (existingPlant) {
+        plant.dates = existingPlant.datetimes.map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
+        plant.frequencyDays = existingPlant.frequencyDays
         isManualAddDate.value = true
         resetDateErrors()
     }
