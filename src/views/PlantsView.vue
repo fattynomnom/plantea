@@ -1,91 +1,62 @@
 <template>
-    <main class="h-full space-y-7 px-7 pb-7 overflow-y-scroll">
-        <div class="space-y-2">
-            <h2>Quick actions</h2>
+    <main class="h-full space-y-5 px-7 pb-7 overflow-y-scroll">
+        <h2>Which plants have you watered today?</h2>
 
-            <div class="flex space-x-2">
-                <CustomButton class="flex-1" @click="isPlantsDrawerVisible = true">
-                    <PlusIcon />
-                    <span>Add plant</span>
-                </CustomButton>
-
-                <CustomButton class="flex-1" @click="$router.push('/create')">
-                    <PlusIcon />
-                    <span>Add setup</span>
-                </CustomButton>
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <h3>Filter by area</h3>
+                <CustomButton variant="link" @click="selectedArea = null">Clear</CustomButton>
             </div>
 
-            <CustomButton class="w-full" @click="isPredictionOpen = true">
-                <SparklesIcon />
-                <span>Generate future predictions</span>
-            </CustomButton>
+            <div v-if="isLoading" class="grid grid-cols-5 gap-2">
+                <Skeleton v-for="index in 5" :key="`area-filter-skeleton-${index}`" class="!h-7" />
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <div
+                    v-for="[area, plantsCount] in Object.entries(areaPlantsCount)"
+                    :key="area"
+                    :class="{
+                        'py-2 px-3 bg-white rounded-2xl text-xs uppercase tracking-wide': true,
+                        'border border-green-900': selectedArea === area
+                    }"
+                    @click="toggleFilter(area)"
+                >
+                    {{ area }} ({{ plantsCount }})
+                </div>
+            </div>
         </div>
 
-        <div class="space-y-5">
-            <h2>Which plants have you watered today?</h2>
+        <div v-if="isLoading" class="grid grid-cols-2 gap-3">
+            <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
+        </div>
 
-            <div class="space-y-3">
-                <div class="flex justify-between">
-                    <h3>Filter by area</h3>
-                    <CustomButton variant="link" @click="selectedArea = null">Clear</CustomButton>
-                </div>
+        <div v-else-if="hasPlants" class="space-y-3">
+            <PlantSetup
+                v-for="setup in filteredSetups"
+                :key="setup.id"
+                :setup="setup"
+                :plants="setup.plants"
+                @edit="openEditDrawer"
+            />
 
-                <div v-if="isLoading" class="grid grid-cols-5 gap-2">
-                    <Skeleton
-                        v-for="index in 5"
-                        :key="`area-filter-skeleton-${index}`"
-                        class="!h-7"
-                    />
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <div
-                        v-for="[area, plantsCount] in Object.entries(areaPlantsCount)"
-                        :key="area"
-                        :class="{
-                            'py-2 px-3 bg-white rounded-2xl text-xs uppercase tracking-wide': true,
-                            'border border-green-900': selectedArea === area
-                        }"
-                        @click="toggleFilter(area)"
+            <ul v-if="plants" class="grid grid-cols-2 gap-3">
+                <li v-for="(plant, index) in filteredSinglePlants" :key="plant.id">
+                    <PlantCard
+                        class="bg-white h-full"
+                        :plant="plant"
+                        :is-watering="isWateringLoading[index] ?? false"
+                        @water="onWaterPlantClick(plant, index)"
+                        @edit="openEditDrawer(plant)"
                     >
-                        {{ area }} ({{ plantsCount }})
-                    </div>
-                </div>
-            </div>
-
-            <div v-if="isLoading" class="grid grid-cols-2 gap-3">
-                <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
-            </div>
-
-            <div v-else-if="hasPlants" class="space-y-3">
-                <PlantSetup
-                    v-for="setup in filteredSetups"
-                    :key="setup.id"
-                    :setup="setup"
-                    :plants="setup.plants"
-                    @edit="editPlant"
-                />
-
-                <ul v-if="plants" class="grid grid-cols-2 gap-3">
-                    <li v-for="(plant, index) in filteredSinglePlants" :key="plant.id">
-                        <PlantCard
-                            class="bg-white h-full"
-                            :plant="plant"
-                            :is-watering="isWateringLoading[index] ?? false"
-                            @water="onWaterPlantClick(plant, index)"
-                            @edit="editPlant(plant)"
-                        >
-                            <h3>{{ plant.name }}</h3>
-                        </PlantCard>
-                    </li>
-                </ul>
-            </div>
-
-            <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
+                        <h3>{{ plant.name }}</h3>
+                    </PlantCard>
+                </li>
+            </ul>
         </div>
-    </main>
 
-    <PredictionDrawer v-model:visible="isPredictionOpen" />
+        <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
+    </main>
 
     <PlantsDrawer
         v-model:visible="isPlantsDrawerVisible"
@@ -106,9 +77,7 @@ import { Skeleton } from 'primevue'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
 import CustomButton from '@/components/CustomButton.vue'
-import { SparklesIcon, PlusIcon } from '@heroicons/vue/24/outline'
 import { useFirebaseUser } from '@/composables/useFirebaseUser'
-import PredictionDrawer from '@/components/PredictionDrawer.vue'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import PlantSetup from '@/components/PlantSetup.vue'
 import PlantsDrawer from '@/components/PlantsDrawer.vue'
@@ -120,7 +89,7 @@ const {
     isPlantsDrawerVisible,
     isLoading: isSubmittingPlant,
     plant,
-    editPlant,
+    openEditDrawer,
     onSubmitPlantForm
 } = usePlantsDrawer()
 
@@ -137,8 +106,6 @@ const hasPlants = computed(() =>
 const isLoading = computed(
     () => user.value === undefined || plants.value === undefined || setups.value === undefined
 )
-
-const isPredictionOpen = ref(false)
 
 // #region watering
 const isWateringLoading = ref<boolean[]>([])

@@ -20,15 +20,29 @@
     </div>
 
     <CustomDrawer v-model:visible="isMenuOpen">
-        <ul>
-            <li class="flex space-x-3 items-center" @click="onSignOutClick">
-                <ArrowLeftStartOnRectangleIcon class="w-5 h-5" />
+        <ul class="menu-list space-y-4">
+            <li @click="onSignOutClick">
+                <ArrowLeftStartOnRectangleIcon />
                 <span>Sign out</span>
+            </li>
+            <li @click="onAddPlantClick">
+                <PlusIcon />
+                <span>Add plant</span>
+            </li>
+            <li @click="onAddSetupClick">
+                <PlusIcon />
+                <span>Add setup</span>
+            </li>
+            <li @click="onGenPredictionsClick">
+                <SparklesIcon />
+                <span>Generate future predictions</span>
             </li>
         </ul>
     </CustomDrawer>
 
     <Toast />
+
+    <PredictionDrawer v-model:visible="isPredictionOpen" />
 </template>
 
 <script setup lang="ts">
@@ -37,12 +51,20 @@ import Toast from 'primevue/toast'
 import { onAuthStateChanged } from 'firebase/auth'
 import { firebaseAuth, signOut as signOutFirebase } from './modules/firebase'
 import Logo from '@/assets/logo.svg?component'
-import { ArrowLeftStartOnRectangleIcon, ArrowPathIcon, Bars3Icon } from '@heroicons/vue/24/outline'
+import {
+    ArrowLeftStartOnRectangleIcon,
+    ArrowPathIcon,
+    Bars3Icon,
+    PlusIcon,
+    SparklesIcon
+} from '@heroicons/vue/24/solid'
 import CustomDrawer from './components/CustomDrawer.vue'
 import { ref } from 'vue'
 import { useFirebaseUser } from './composables/useFirebaseUser'
 import { useSetupsQuery } from './composables/useSetupsQuery'
 import { useToast } from './composables/useToast'
+import { usePlantsDrawer } from './composables/usePlantsDrawer'
+import PredictionDrawer from './components/PredictionDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -53,7 +75,10 @@ const { user } = useFirebaseUser()
 
 const { invalidateSetupsQuery } = useSetupsQuery()
 
+const { openCreateDrawer } = usePlantsDrawer()
+
 const isMenuOpen = ref(false)
+const isPredictionOpen = ref(false)
 
 onAuthStateChanged(firebaseAuth, async fbUser => {
     const goToLogin = () => {
@@ -112,4 +137,32 @@ const onRefreshClick = async () => {
     }
 }
 // #endregion
+
+// #region menu
+const onAddPlantClick = () => {
+    isMenuOpen.value = false
+    openCreateDrawer()
+}
+
+const onAddSetupClick = () => {
+    isMenuOpen.value = false
+    router.push('/create')
+}
+
+const onGenPredictionsClick = () => {
+    isMenuOpen.value = false
+    isPredictionOpen.value = true
+}
+// #endregion
 </script>
+
+<style scoped>
+.menu-list > li {
+    font-family: var(--font-accent);
+    @apply flex space-x-3 items-center font-bold;
+}
+
+.menu-list > li svg {
+    @apply w-5 h-5;
+}
+</style>

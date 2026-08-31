@@ -5,22 +5,28 @@ import { usePlantsQuery } from './usePlantsQuery'
 import { useToast } from './useToast'
 import type { PlantInput, PlantOutput } from '@/components/PlantsDrawer.vue'
 
+const isPlantsDrawerVisible = ref(false)
+const plant = reactive<PlantInput>({
+    id: undefined,
+    name: '',
+    dates: [null],
+    area: undefined
+})
+
 export const usePlantsDrawer = () => {
-    const isPlantsDrawerVisible = ref(false)
     const isLoading = ref(false)
     const originalDatetimes = ref<Plant['datetimes']>()
-    const plant = reactive<PlantInput>({
-        id: undefined,
-        name: '',
-        dates: [null],
-        area: undefined
-    })
 
     const { invalidatePlantsQuery } = usePlantsQuery()
 
     const { displayGenericError } = useToast()
 
-    const editPlant = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup'>) => {
+    const openCreateDrawer = () => {
+        resetPlant()
+        isPlantsDrawerVisible.value = true
+    }
+
+    const openEditDrawer = (data: Pick<Plant, 'id' | 'name' | 'area' | 'datetimes' | 'setup'>) => {
         plant.id = data.id
         plant.name = data.name
         plant.dates = data.datetimes.sort().map(datetime => dayjs(datetime).format('DD/MM/YYYY'))
@@ -39,8 +45,6 @@ export const usePlantsDrawer = () => {
         plant.area = undefined
 
         originalDatetimes.value = undefined
-
-        isPlantsDrawerVisible.value = false
     }
 
     const onSubmitPlantForm = async (data: PlantOutput) => {
@@ -71,6 +75,7 @@ export const usePlantsDrawer = () => {
 
             await invalidatePlantsQuery()
             resetPlant()
+            isPlantsDrawerVisible.value = false
         } catch {
             displayGenericError()
         } finally {
@@ -82,7 +87,8 @@ export const usePlantsDrawer = () => {
         isPlantsDrawerVisible,
         isLoading,
         plant,
-        editPlant,
+        openCreateDrawer,
+        openEditDrawer,
         onSubmitPlantForm
     }
 }
