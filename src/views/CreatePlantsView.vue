@@ -42,10 +42,11 @@ const onSubmit = async (data: PlantSetupFormData) => {
                 },
                 area: data.area
             },
-            data.plants.map(({ positionPercentage, name, dates }) => ({
+            data.plants.map(({ positionPercentage, name, dates, frequencyDays }) => ({
                 name,
                 positionPercentage,
-                datetimes: dates.map(date => date.getTime())
+                datetimes: dates.map(date => date.getTime()),
+                frequencyDays
             })),
             () => {},
             () => {
