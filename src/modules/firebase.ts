@@ -267,4 +267,23 @@ export const batchUpdateDocs = async <
 
         return getDocRef(collectionConfig, docId)
     })
+
+export const batchDeleteDocs = async <
+    AppModelType extends object,
+    DbModelType extends DocumentData
+>(
+    collectionConfig: CollectionConfig<AppModelType, DbModelType>,
+    docIds: string[]
+): Promise<void> => {
+    if (!docIds.length) {
+        return
+    }
+
+    const batch = writeBatch(firestore)
+    docIds.forEach(docId => {
+        batch.delete(getDocRef(collectionConfig, docId))
+    })
+
+    await batch.commit()
+}
 // #endregion

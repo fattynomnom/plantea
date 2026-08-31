@@ -24,6 +24,8 @@
 
 <script setup lang="ts">
 import { Dialog } from 'primevue'
+import CustomButton from './CustomButton.vue'
+import { TrashIcon } from '@heroicons/vue/24/outline'
 
 const visible = defineModel<boolean>('visible', { required: true })
 

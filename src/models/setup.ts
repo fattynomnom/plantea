@@ -17,7 +17,9 @@ import {
     type AddPlantInput,
     type PlantSetup,
     type UpdatePlantInput,
-    updatePlantsWithRecommendation
+    updatePlantsWithRecommendation,
+    type Plant,
+    batchDeletePlants
 } from './plant'
 import { v4 } from 'uuid'
 
@@ -71,6 +73,14 @@ const updateSetup = (data: Setup) => updateDoc<Setup, DbSetup>(setupCollectionCo
 export const deleteSetup = async (data: DeleteSetupInput) => {
     await deleteDoc(setupCollectionConfig, data.id)
     await deleteFile(data.imgName)
+}
+
+export const deleteSetupAndPlants = async (
+    data: DeleteSetupInput,
+    plantIds: Array<Plant['id']>
+) => {
+    await batchDeletePlants(plantIds)
+    await deleteSetup(data)
 }
 // #endregion
 

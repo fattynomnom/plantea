@@ -170,7 +170,8 @@
         @confirm="onDeleteConfirm"
     >
         Are you sure you want to delete this plant and all of its data? If this plant belongs to a
-        setup and is the only plant in the setup, the entire setup will be deleted.
+        setup and is the only plant in the setup, the entire setup will be deleted. This action
+        cannot be undone.
     </DeleteConfirmationDialog>
 </template>
 
@@ -436,7 +437,7 @@ const onDeleteConfirm = async () => {
 
         emit('delete')
     } catch (error) {
-        console.log('Delete error', error)
+        console.log('Delete plant error', error)
         displayGenericError()
     } finally {
         isDeleting.value = false

@@ -1,6 +1,6 @@
 <template>
-    <div class="space-y-4 flex flex-col flex-1 overflow-hidden">
-        <div class="flex-1 space-y-4 px-7 pb-7 overflow-y-scroll overflow-x-hidden">
+    <div class="space-y-4 flex flex-col flex-1 overflow-y-scroll">
+        <div class="flex-1 space-y-4 px-7 pb-7">
             <h2>{{ title }}</h2>
 
             <template v-if="setup">
@@ -55,18 +55,19 @@
 
             <PlantNotFoundCard v-else @add-plant="$router.push('/create')" />
         </div>
-    </div>
 
-    <div class="flex justify-between px-7 pb-7">
-        <CustomButton variant="outline" @click="$router.go(-1)">
-            <ChevronLeftIcon />
-            <span>Cancel</span>
-        </CustomButton>
+        <div class="flex justify-between px-7 pb-7">
+            <CustomButton v-if="setup.id" variant="outline" @click="deleteConfirmVisible = true">
+                <TrashIcon />
+                <span>Delete</span>
+            </CustomButton>
+            <div v-else />
 
-        <CustomButton :is-disabled="isNextDisabled" :is-loading="isSaving" @click="onSubmit">
-            <span>Save</span>
-            <ArrowRightCircleIcon />
-        </CustomButton>
+            <CustomButton :is-disabled="isNextDisabled" :is-loading="isSaving" @click="onSubmit">
+                <span>Save</span>
+                <ArrowRightCircleIcon />
+            </CustomButton>
+        </div>
     </div>
 
     <CropDrawer
@@ -76,14 +77,19 @@
         @update:visible="onCropDrawerVisibleUpdated"
         @save="onCropDrawerSave"
     />
+
+    <DeleteConfirmationDialog
+        v-model:visible="deleteConfirmVisible"
+        :is-loading="isDeleting"
+        @confirm="onDeleteConfirm"
+    >
+        Are you sure you want to delete this setup and all of its data? This action cannot be
+        undone.
+    </DeleteConfirmationDialog>
 </template>
 
 <script setup lang="ts">
-import {
-    ArrowRightCircleIcon,
-    ChevronLeftIcon,
-    InformationCircleIcon
-} from '@heroicons/vue/24/outline'
+import { ArrowRightCircleIcon, InformationCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import CustomButton from '@/components/CustomButton.vue'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
@@ -97,6 +103,11 @@ import { type UpdatePlantInput } from '@/models/plant'
 import CropDrawer, { type CropDrawerSaveEmitterValue } from './CropDrawer.vue'
 import { getFileExtension } from '@/utils/file.utils'
 import { v4 } from 'uuid'
+import DeleteConfirmationDialog from './DeleteConfirmationDialog.vue'
+import { deleteSetupAndPlants } from '@/models/setup'
+import { useRouter } from 'vue-router'
+import { useToast } from '@/composables/useToast'
+import { useSetupsQuery } from '@/composables/useSetupsQuery'
 
 interface Plant extends PlantSetupDetailsFormData {
     originalDatetimes: number[]
@@ -127,6 +138,12 @@ const { title, initialSetup, isSaving } = defineProps<{
 const emit = defineEmits<{
     (e: 'save', value: PlantSetupFormData): Promise<void>
 }>()
+
+const router = useRouter()
+
+const { displayGenericError } = useToast()
+
+const { invalidateSetupsQuery } = useSetupsQuery()
 
 const setup = ref<PlantSetupFormData>(initialSetup)
 
@@ -195,7 +212,7 @@ const displayImage = computed(() => {
         return { url: file.objectURL }
     }
 
-    if (downloadUrl.value && setup.value) {
+    if (downloadUrl.value && setup.value.imgName) {
         return { name: setup.value.imgName, url: downloadUrl.value }
     }
 
@@ -223,6 +240,40 @@ const onSubmit = async () => {
     }
 
     emit('save', setup.value)
+}
+// #endregion
+
+// #region delete
+const deleteConfirmVisible = ref(false)
+const isDeleting = ref(false)
+
+const onDeleteConfirm = async () => {
+    if (!setup.value.id || !setup.value.imgName) {
+        return
+    }
+
+    isDeleting.value = true
+
+    try {
+        const plantIds = setup.value.plants.map(({ id }) => id)
+
+        await deleteSetupAndPlants(
+            {
+                id: setup.value.id,
+                imgName: setup.value.imgName
+            },
+            plantIds
+        )
+
+        deleteConfirmVisible.value = false
+        await invalidateSetupsQuery()
+        router.push('/')
+    } catch (error) {
+        console.log('Delete setup error', error)
+        displayGenericError()
+    } finally {
+        isDeleting.value = false
+    }
 }
 // #endregion
 

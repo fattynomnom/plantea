@@ -6,7 +6,8 @@ import {
     genAi,
     batchUpdateDocs,
     batchCreateDocs,
-    deleteDoc
+    deleteDoc,
+    batchDeleteDocs
 } from '@/modules/firebase'
 import type { ChartValues } from '@/types'
 import dayjs from 'dayjs'
@@ -128,6 +129,9 @@ export const batchCreatePlants = (data: AddPlantInput[]) =>
 
 export const batchUpdatePlants = (data: UpdatePlantInput[]) =>
     batchUpdateDocs(plantCollectionConfig, data)
+
+export const batchDeletePlants = (ids: Array<Plant['id']>) =>
+    batchDeleteDocs(plantCollectionConfig, ids)
 // #endregion
 
 // #region logical functions
