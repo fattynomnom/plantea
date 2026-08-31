@@ -21,16 +21,45 @@
             </CustomButton>
         </div>
 
-        <div class="space-y-3">
+        <div class="space-y-5">
             <h2>Which plants have you watered today?</h2>
+
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <h3>Filter by area</h3>
+                    <CustomButton variant="link" @click="selectedArea = null">Clear</CustomButton>
+                </div>
+
+                <div v-if="isLoading" class="grid grid-cols-5 gap-2">
+                    <Skeleton
+                        v-for="index in 5"
+                        :key="`area-filter-skeleton-${index}`"
+                        class="!h-7"
+                    />
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <div
+                        v-for="[area, plantsCount] in Object.entries(areaPlantsCount)"
+                        :key="area"
+                        :class="{
+                            'py-2 px-3 bg-white rounded-2xl text-xs uppercase tracking-wide': true,
+                            'border border-green-900': selectedArea === area
+                        }"
+                        @click="toggleFilter(area)"
+                    >
+                        {{ area }} ({{ plantsCount }})
+                    </div>
+                </div>
+            </div>
 
             <div v-if="isLoading" class="grid grid-cols-2 gap-3">
                 <Skeleton v-for="index in 6" :key="`plant-skeleton-${index}`" class="!h-10" />
             </div>
 
-            <template v-else-if="hasPlants">
+            <div v-else-if="hasPlants" class="space-y-3">
                 <PlantSetup
-                    v-for="setup in setups"
+                    v-for="setup in filteredSetups"
                     :key="setup.id"
                     :setup="setup"
                     :plants="setup.plants"
@@ -38,7 +67,7 @@
                 />
 
                 <ul v-if="plants" class="grid grid-cols-2 gap-3">
-                    <li v-for="(plant, index) in plants.singlePlants" :key="plant.id">
+                    <li v-for="(plant, index) in filteredSinglePlants" :key="plant.id">
                         <PlantCard
                             class="bg-white h-full"
                             :plant="plant"
@@ -50,7 +79,7 @@
                         </PlantCard>
                     </li>
                 </ul>
-            </template>
+            </div>
 
             <PlantNotFoundCard v-else @add-plant="isPlantsDrawerVisible = true" />
         </div>
@@ -109,8 +138,10 @@ const isLoading = computed(
     () => user.value === undefined || plants.value === undefined || setups.value === undefined
 )
 
-const isWateringLoading = ref<boolean[]>([])
 const isPredictionOpen = ref(false)
+
+// #region watering
+const isWateringLoading = ref<boolean[]>([])
 
 const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: number) => {
     isWateringLoading.value[index] = true
@@ -126,6 +157,15 @@ const onWaterPlantClick = async (plant: Omit<Plant, 'shouldBeWatered'>, index: n
     }
 }
 
+watch(
+    () => plants.value?.singlePlants,
+    value => {
+        isWateringLoading.value = Array.from({ length: value?.length ?? 0 }, () => false)
+    }
+)
+// #endregion
+
+// #region delete plant
 const onDeletePlant = async () => {
     isPlantsDrawerVisible.value = false
 
@@ -137,13 +177,52 @@ const onDeletePlant = async () => {
 
     invalidateSetupsQuery()
 }
+// #endregion
 
-watch(
-    () => plants.value?.singlePlants,
-    value => {
-        isWateringLoading.value = Array.from({ length: value?.length ?? 0 }, () => false)
+// #region area filter
+const selectedArea = ref<string | null>(null)
+
+const areaPlantsCount = computed<Record<string, number>>(() => {
+    if (plants.value && setups.value) {
+        const setupIdAreaMap = setups.value.reduce<Record<string, string>>((acc, { id, area }) => {
+            acc[id] = area?.trim() ?? ''
+            return acc
+        }, {})
+
+        const unassignedSetupPlants = plants.value.plantsWithSetup.filter(({ setup }) => {
+            const area = setupIdAreaMap[setup.id]
+            return !Boolean(area?.trim())
+        })
+
+        const unassignedSinglePlants = plants.value.singlePlants.filter(({ area }) => !area?.trim())
+
+        const totalUnassignedPlants = unassignedSetupPlants.length + unassignedSinglePlants.length
+
+        return {
+            ...plants.value.areas,
+            ...(totalUnassignedPlants && { Unassigned: totalUnassignedPlants })
+        }
     }
+
+    return {}
+})
+
+const filteredSetups = computed(() =>
+    selectedArea.value
+        ? setups.value?.filter(({ area }) => area?.trim() === selectedArea.value)
+        : setups.value
 )
+
+const filteredSinglePlants = computed(() =>
+    selectedArea.value
+        ? plants.value?.singlePlants.filter(({ area }) => area?.trim() === selectedArea.value)
+        : plants.value?.singlePlants
+)
+
+const toggleFilter = (area: string) => {
+    selectedArea.value = selectedArea.value === area ? null : area
+}
+// #endregion
 </script>
 
 <style scoped>

@@ -24,11 +24,16 @@ const { placeholder, id } = defineProps<{
 const { data: plants } = usePlantsQuery()
 
 const filteredAreas = computed(() => {
+    if (!plants.value?.areas) {
+        return []
+    }
+
     const value = modelValue.value?.toLowerCase()
-    return (
-        (value
-            ? plants.value?.areas.filter(area => area.toLowerCase().includes(value))
-            : plants.value?.areas) ?? []
-    )
+    if (value) {
+        const areas = Object.keys(plants.value.areas)
+        return areas.filter(area => area.toLowerCase().includes(value))
+    }
+
+    return []
 })
 </script>

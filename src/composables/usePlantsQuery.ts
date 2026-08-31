@@ -7,12 +7,12 @@ const plantsQueryKey = ['plants']
 
 type SinglePlant = Omit<Plant, 'setup'>
 
-export type PlantWithSetup = Omit<Plant, 'setup'> & Required<Pick<Plant, 'setup'>>
+export type PlantWithSetup = Omit<Plant, 'setup' | 'area'> & Required<Pick<Plant, 'setup'>>
 
 interface Data {
     singlePlants: SinglePlant[]
     plantsWithSetup: PlantWithSetup[]
-    areas: string[]
+    areas: Record<string, number>
 }
 
 export const usePlantsQuery = () => {
@@ -28,14 +28,22 @@ export const usePlantsQuery = () => {
                 const plants = await fetchAndPurgePlants()
 
                 const { singlePlants, plantsWithSetup, areas } = plants.reduce<Data>(
-                    (acc, { setup, ...plant }) => ({
-                        singlePlants: setup ? acc.singlePlants : acc.singlePlants.concat(plant),
-                        plantsWithSetup: setup
-                            ? acc.plantsWithSetup.concat({ ...plant, setup })
-                            : acc.plantsWithSetup,
-                        areas: plant.area ? acc.areas.concat(plant.area) : acc.areas
-                    }),
-                    { singlePlants: [], plantsWithSetup: [], areas: [] }
+                    (acc, { setup, ...plant }) => {
+                        const area = plant.area?.trim()
+                        const accAreaPlantCount = area ? (acc.areas[area] ?? 0) : 0
+                        if (area) {
+                            acc.areas[area] = accAreaPlantCount + 1
+                        }
+
+                        return {
+                            singlePlants: setup ? acc.singlePlants : acc.singlePlants.concat(plant),
+                            plantsWithSetup: setup
+                                ? acc.plantsWithSetup.concat({ ...plant, setup })
+                                : acc.plantsWithSetup,
+                            areas: acc.areas
+                        }
+                    },
+                    { singlePlants: [], plantsWithSetup: [], areas: {} }
                 )
 
                 singlePlants.sort((a, b) => {
@@ -52,7 +60,7 @@ export const usePlantsQuery = () => {
                 return {
                     singlePlants,
                     plantsWithSetup,
-                    areas: [...new Set(areas)]
+                    areas
                 }
             }
         }),
