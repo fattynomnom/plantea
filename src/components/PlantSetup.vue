@@ -131,7 +131,7 @@ const plantPosition = computed<Array<CSSProperties | undefined>>(() =>
             if (xEndPosition > imgDimensions.width.value) {
                 style.right = `${INDICATOR_OFFSET_PX}px`
             } else {
-                style.left = `${position.x}px`
+                style.left = `${position.x - INDICATOR_OFFSET_PX}px`
             }
 
             // handle if indicator is too far up until it overflows
