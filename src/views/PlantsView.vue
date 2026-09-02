@@ -72,7 +72,7 @@
 import { computed, ref, watch } from 'vue'
 import PlantNotFoundCard from '@/components/PlantNotFoundCard.vue'
 import { markPlantWatered, type Plant } from '@/models/plant'
-import { usePlantsQuery } from '@/composables/usePlantsQuery'
+import { usePlantsQuery, type PlantWithSetup } from '@/composables/usePlantsQuery'
 import { Skeleton } from 'primevue'
 import { useToast } from '@/composables/useToast'
 import { usePlantsDrawer } from '@/composables/usePlantsDrawer'
@@ -152,42 +152,45 @@ const onDeletePlant = async () => {
 // #region area filter
 const selectedArea = ref<string | null>(null)
 
+const unassignedSinglePlants = computed(
+    () => plants.value?.singlePlants.filter(({ area }) => !area?.trim()) ?? []
+)
+
+const unassignedSetups = computed(() => setups.value?.filter(({ area }) => !area?.trim()) ?? [])
+
 const areaPlantsCount = computed<Record<string, number>>(() => {
-    if (plants.value && setups.value) {
-        const setupIdAreaMap = setups.value.reduce<Record<string, string>>((acc, { id, area }) => {
-            acc[id] = area?.trim() ?? ''
-            return acc
-        }, {})
+    const unassignedSetupPlants = unassignedSetups.value.reduce<PlantWithSetup[]>(
+        (acc, { plants }) => acc.concat(plants),
+        []
+    )
 
-        const unassignedSetupPlants = plants.value.plantsWithSetup.filter(({ setup }) => {
-            const area = setupIdAreaMap[setup.id]
-            return !Boolean(area?.trim())
-        })
+    const totalUnassignedPlants = unassignedSetupPlants.length + unassignedSinglePlants.value.length
 
-        const unassignedSinglePlants = plants.value.singlePlants.filter(({ area }) => !area?.trim())
-
-        const totalUnassignedPlants = unassignedSetupPlants.length + unassignedSinglePlants.length
-
-        return {
-            ...areaPlantsCountMap.value,
-            ...(totalUnassignedPlants && { Unassigned: totalUnassignedPlants })
-        }
+    return {
+        ...areaPlantsCountMap.value,
+        ...(totalUnassignedPlants && { Unassigned: totalUnassignedPlants })
     }
-
-    return {}
 })
 
-const filteredSetups = computed(() =>
-    selectedArea.value
+const filteredSetups = computed(() => {
+    if (selectedArea.value === 'Unassigned') {
+        return unassignedSetups.value
+    }
+
+    return selectedArea.value
         ? setups.value?.filter(({ area }) => area?.trim() === selectedArea.value)
         : setups.value
-)
+})
 
-const filteredSinglePlants = computed(() =>
-    selectedArea.value
+const filteredSinglePlants = computed(() => {
+    if (selectedArea.value === 'Unassigned') {
+        return unassignedSinglePlants.value
+    }
+
+    return selectedArea.value
         ? plants.value?.singlePlants.filter(({ area }) => area?.trim() === selectedArea.value)
         : plants.value?.singlePlants
-)
+})
 
 const toggleFilter = (area: string) => {
     selectedArea.value = selectedArea.value === area ? null : area
