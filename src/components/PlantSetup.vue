@@ -4,69 +4,72 @@
             ref="image"
             :alt="setup.imgName"
             :src="downloadUrl"
-            width="200"
-            height="200"
+            width="346"
+            height="432"
             class="w-full cursor-pointer rounded-2xl shadow-lg"
+            @load="isImgLoaded = true"
         />
 
-        <PencilSquareIcon
-            class="absolute top-4 right-4 h-7 w-7 text-white"
-            @click="$router.push(`/edit/${setup.id}`)"
-        />
+        <template v-if="isImgLoaded">
+            <PencilSquareIcon
+                class="absolute top-4 right-4 h-7 w-7 text-white"
+                @click="$router.push(`/edit/${setup.id}`)"
+            />
 
-        <OnClickOutside
-            v-for="(plant, plantIndex) in plants"
-            :key="plant.name + plantIndex"
-            :class="`absolute flex flex-col items-center space-y-5 plant-${plant.id}`"
-            :style="{
-                ...plantPosition[plantIndex]
-            }"
-            :options="{
-                ignore: tooltipIgnoredEls[plantIndex]
-            }"
-            @trigger="onClickOutside(plantIndex)"
-        >
-            <div
-                :class="{
-                    'relative rounded-full border border-white outline outline-offset-2 outline-white flex flex-col justify-center': true,
-                    'overflow-hidden': plant.isWateredToday
-                }"
+            <OnClickOutside
+                v-for="(plant, plantIndex) in plants"
+                :key="plant.name + plantIndex"
+                :class="`absolute flex flex-col items-center space-y-5 plant-${plant.id}`"
                 :style="{
-                    height: `${INDICATOR_WIDTH_PX}px`,
-                    width: `${INDICATOR_WIDTH_PX}px`
+                    ...plantPosition[plantIndex]
                 }"
-                @click="tooltipIndex = plantIndex"
+                :options="{
+                    ignore: tooltipIgnoredEls[plantIndex]
+                }"
+                @trigger="onClickOutside(plantIndex)"
             >
-                <template v-if="plant.isWateredToday">
-                    <div class="plant-overlay top-0" />
-                    <CheckIcon class="text-white h-8 w-8 m-auto" />
-                </template>
-
                 <div
-                    v-else-if="plant.shouldBeWatered"
-                    class="absolute bg-green-900 -bottom-2 -right-2 rounded-full"
-                >
-                    <ExclamationCircleIcon class="text-white h-6 w-6" />
-                </div>
-            </div>
-
-            <Transition name="opacity">
-                <PlantCard
-                    v-if="tooltipIndex === plantIndex"
-                    class="absolute bg-color-default z-10"
-                    :style="{
-                        ...tooltipYPosition[plantIndex],
-                        width: `${PLANT_CONTAINER_WIDTH_PX}px`
+                    :class="{
+                        'relative rounded-full border border-white outline outline-offset-2 outline-white flex flex-col justify-center': true,
+                        'overflow-hidden': plant.isWateredToday
                     }"
-                    :plant="plant"
-                    :is-watering="tooltipIndex === plantIndex && isWatering"
-                    @edit="$emit('edit', plant)"
-                    @water="onCompleteWatering(plant)"
+                    :style="{
+                        height: `${INDICATOR_WIDTH_PX}px`,
+                        width: `${INDICATOR_WIDTH_PX}px`
+                    }"
+                    @click="tooltipIndex = plantIndex"
                 >
-                    <h3>{{ plant.name }}</h3>
-                </PlantCard>
-            </Transition>
-        </OnClickOutside>
+                    <template v-if="plant.isWateredToday">
+                        <div class="plant-overlay top-0" />
+                        <CheckIcon class="text-white h-8 w-8 m-auto" />
+                    </template>
+
+                    <div
+                        v-else-if="plant.shouldBeWatered"
+                        class="absolute bg-green-900 -bottom-2 -right-2 rounded-full"
+                    >
+                        <ExclamationCircleIcon class="text-white h-6 w-6" />
+                    </div>
+                </div>
+
+                <Transition name="opacity">
+                    <PlantCard
+                        v-if="tooltipIndex === plantIndex"
+                        class="absolute bg-color-default z-10"
+                        :style="{
+                            ...tooltipYPosition[plantIndex],
+                            width: `${PLANT_CONTAINER_WIDTH_PX}px`
+                        }"
+                        :plant="plant"
+                        :is-watering="tooltipIndex === plantIndex && isWatering"
+                        @edit="$emit('edit', plant)"
+                        @water="onCompleteWatering(plant)"
+                    >
+                        <h3>{{ plant.name }}</h3>
+                    </PlantCard>
+                </Transition>
+            </OnClickOutside>
+        </template>
     </div>
 </template>
 
@@ -187,6 +190,10 @@ const tooltipYPosition = computed<Array<CSSProperties | undefined>>(() =>
         return style
     })
 )
+
+// #region display indicators when img is fully loaded
+const isImgLoaded = ref(false)
+// #endregion
 
 // #region watering
 const isWatering = ref(false)
