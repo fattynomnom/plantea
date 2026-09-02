@@ -40,7 +40,7 @@
         </ul>
     </CustomDrawer>
 
-    <Toast />
+    <Toast position="bottom-right" />
 
     <PredictionDrawer v-model:visible="isPredictionOpen" />
 </template>
