@@ -1,6 +1,25 @@
 <template>
     <main class="h-full w-full space-y-5 px-7 pb-7 overflow-y-scroll overflow-x-hidden">
-        <h2>Which plants have you watered today?</h2>
+        <div class="flex space-x-2">
+            <template v-if="isLoading">
+                <Skeleton
+                    v-for="index in 2"
+                    :key="`stats-skeleton-${index}`"
+                    class="flex-1 !h-20"
+                />
+            </template>
+
+            <template v-else>
+                <div class="stats-card">
+                    <h3>Total plants watered today</h3>
+                    <p>{{ wateredPlantsCount }}</p>
+                </div>
+                <div class="stats-card">
+                    <h3>Total thirsty plants today</h3>
+                    <p>{{ thirstyPlantsCount }}</p>
+                </div>
+            </template>
+        </div>
 
         <div class="space-y-3">
             <div class="flex justify-between">
@@ -17,7 +36,7 @@
                     v-for="[area, plantsCount] in Object.entries(areaPlantsCount)"
                     :key="area"
                     :class="{
-                        'py-2 px-3 bg-white rounded-2xl text-xs uppercase tracking-wide': true,
+                        'py-2 px-3 bg-white rounded-2xl text-xs uppercase tracking-wide font-accent font-semibold': true,
                         'border border-green-900': selectedArea === area
                     }"
                     @click="toggleFilter(area)"
@@ -110,6 +129,24 @@ const isLoading = computed(
     () => user.value === undefined || plants.value === undefined || setups.value === undefined
 )
 
+// #region stats
+const allPlants = computed(() => [
+    ...(plants.value?.plantsWithSetup ?? []),
+    ...(plants.value?.singlePlants ?? [])
+])
+
+const wateredPlantsCount = computed<number>(() =>
+    allPlants.value.reduce<number>((acc, { isWateredToday }) => (isWateredToday ? acc + 1 : acc), 0)
+)
+
+const thirstyPlantsCount = computed<number>(() =>
+    allPlants.value.reduce<number>(
+        (acc, { shouldBeWatered }) => (shouldBeWatered ? acc + 1 : acc),
+        0
+    )
+)
+// #endregion
+
 // #region watering
 const isWateringLoading = ref<boolean[]>([])
 
@@ -201,5 +238,18 @@ const toggleFilter = (area: string) => {
 <style scoped>
 .p-accordioncontent-content p {
     @apply text-sm;
+}
+
+.stats-card {
+    font-family: var(--font-accent);
+    @apply flex-1 rounded-2xl space-y-2 bg-white p-4;
+}
+
+.stats-card h3 {
+    @apply leading-5 text-sm;
+}
+
+.stats-card p {
+    @apply tracking-wide font-semibold text-2xl;
 }
 </style>
