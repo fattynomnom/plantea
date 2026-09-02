@@ -299,7 +299,7 @@ div[data-pc-name='drawer'] {
 }
 
 .p-drawer-bottom .p-drawer {
-    @apply h-fit max-h-[70%] !important;
+    @apply h-fit max-h-[80%] !important;
 }
 
 div[data-pc-name='drawer'] div[data-pc-section='header'] {
