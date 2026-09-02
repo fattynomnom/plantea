@@ -5,6 +5,7 @@
             plants: []
         }"
         :is-saving="isLoading"
+        :upload-progress="uploadProgress"
         @save="onSubmit"
     />
 </template>
@@ -25,9 +26,15 @@ const { invalidateSetupsQuery } = useSetupsQuery()
 
 // #region submission
 const isLoading = ref(false)
+const uploadProgress = ref(0)
+
+const resetLoading = () => {
+    isLoading.value = true
+    uploadProgress.value = 0
+}
 
 const onSubmit = async (data: PlantSetupFormData) => {
-    isLoading.value = true
+    resetLoading()
 
     try {
         if (!data.file) {
@@ -48,9 +55,11 @@ const onSubmit = async (data: PlantSetupFormData) => {
                 datetimes: dates.map(date => date.getTime()),
                 frequencyDays
             })),
-            () => {},
+            progress => {
+                uploadProgress.value = progress
+            },
             () => {
-                isLoading.value = false
+                resetLoading()
                 invalidateSetupsQuery()
                 router.push('/')
             }

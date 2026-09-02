@@ -103,6 +103,13 @@
         Are you sure you want to delete this setup and all of its data? This action cannot be
         undone.
     </DeleteConfirmationDialog>
+
+    <div
+        v-if="uploadProgress !== undefined && isSaving"
+        class="overlay flex flex-col justify-center items-center bg-orange-100/50"
+    >
+        <CustomSpinner class="color-primary" :stroke-width="2">{{ uploadProgress }}%</CustomSpinner>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -126,6 +133,7 @@ import { useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
 import { XMarkIcon } from '@heroicons/vue/24/solid'
+import CustomSpinner from './CustomSpinner.vue'
 
 interface Plant extends PlantSetupDetailsFormData {
     originalDatetimes: number[]
@@ -147,10 +155,11 @@ export interface PlantSetupFormData {
     }
 }
 
-const { title, initialSetup, isSaving } = defineProps<{
+const { title, initialSetup, isSaving, uploadProgress } = defineProps<{
     title: string
     initialSetup: PlantSetupFormData
     isSaving: boolean
+    uploadProgress?: number
 }>()
 
 const emit = defineEmits<{

@@ -210,6 +210,10 @@ label {
 .color-danger {
     color: var(--color-danger);
 }
+
+.overlay {
+    @apply absolute left-0 right-0 top-0 bottom-0 backdrop-blur-sm z-20;
+}
 /* #endregion */
 
 /* #region Vue transitions */

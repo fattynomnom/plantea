@@ -1,10 +1,6 @@
 <template>
     <Transition name="opacity">
-        <div
-            v-if="visible"
-            class="absolute left-0 right-0 top-0 bottom-0 backdrop-blur-sm bg-gray-500/50 z-20"
-            @click="visible = false"
-        />
+        <div v-if="visible" class="overlay bg-gray-500/50" @click="visible = false" />
     </Transition>
     <TransitionGroup :name="visible ? 'slide-left' : 'slide-right'">
         <div
