@@ -14,10 +14,9 @@
                         <div class="flex items-center space-x-2">
                             <label>Plants in setup</label>
                             <InformationCircleIcon
-                                class="w-5 h-5 outline-none"
-                                v-tooltip.focus.left="
-                                    'Tap on a plant in the image(s) to identify it. Hold and drag the indicator to move if needed.'
-                                "
+                                v-if="hasFile"
+                                class="w-5 h-5 outline-none cursor-pointer"
+                                @click="infoCalloutVisible = !infoCalloutVisible"
                             />
                         </div>
 
@@ -25,6 +24,24 @@
                             Replace image
                         </CustomButton>
                     </div>
+
+                    <Transition name="reveal">
+                        <div v-if="infoCalloutVisible" class="reveal-panel">
+                            <div class="reveal-panel-inner">
+                                <div class="rounded-2xl p-3 bg-white text-sm flex space-x-2">
+                                    <InformationCircleIcon class="w-5 h-5 shrink-0" />
+                                    <span>
+                                        Tap on a plant in the image to identify it. Hold and drag
+                                        the indicator to move if needed.
+                                    </span>
+                                    <XMarkIcon
+                                        class="w-5 h-5"
+                                        @click="infoCalloutVisible = false"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Transition>
 
                     <div v-if="!hasFile" class="rounded-2xl bg-white overflow-hidden py-16 px-7">
                         <div class="flex flex-col items-center space-y-5">
@@ -108,6 +125,7 @@ import { deleteSetupAndPlants } from '@/models/setup'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import { useSetupsQuery } from '@/composables/useSetupsQuery'
+import { XMarkIcon } from '@heroicons/vue/24/solid'
 
 interface Plant extends PlantSetupDetailsFormData {
     originalDatetimes: number[]
@@ -144,6 +162,8 @@ const router = useRouter()
 const { displayGenericError } = useToast()
 
 const { invalidateSetupsQuery } = useSetupsQuery()
+
+const infoCalloutVisible = ref(false)
 
 const setup = ref<PlantSetupFormData>({
     ...initialSetup,
@@ -293,3 +313,34 @@ watch(
     { immediate: true }
 )
 </script>
+
+<style scoped>
+/* grid is used so the panel height can animate. CSS cannot transition height: auto to 0. */
+.reveal-panel {
+    display: grid;
+    grid-template-rows: 1fr;
+}
+
+.reveal-panel-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.reveal-enter-active,
+.reveal-leave-active {
+    transition:
+        grid-template-rows 0.3s ease-out,
+        opacity 0.25s ease-out;
+}
+
+.reveal-enter-from,
+.reveal-leave-to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+}
+
+.reveal-enter-to,
+.reveal-leave-from {
+    grid-template-rows: 1fr;
+}
+</style>
