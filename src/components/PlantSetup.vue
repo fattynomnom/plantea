@@ -26,35 +26,18 @@
             }"
             @trigger="onClickOutside(plantIndex)"
         >
-            <OnLongPress
-                as="div"
+            <div
                 :class="{
                     'relative rounded-full border border-white outline outline-offset-2 outline-white flex flex-col justify-center': true,
-                    'overflow-hidden': plant.isWateredToday || wateringHeightPx > 0
+                    'overflow-hidden': plant.isWateredToday
                 }"
                 :style="{
                     height: `${INDICATOR_WIDTH_PX}px`,
                     width: `${INDICATOR_WIDTH_PX}px`
                 }"
-                :options="{ delay: 2000 }"
-                @touchstart="onStartWatering(plant.id)"
-                @touchend="resetWatering(plantIndex)"
-                @trigger="onCompleteWatering(plant)"
+                @click="tooltipIndex = plantIndex"
             >
-                <template
-                    v-if="
-                        selectedPlantId === plant.id &&
-                        wateringHeightPx > 0 &&
-                        !plant.isWateredToday
-                    "
-                >
-                    <div class="plant-overlay" :style="{ height: `${wateringHeightPx}px` }" />
-                    <div class="flex flex-col justify-center">
-                        <CustomSpinner class="mx-auto text-white h-5 w-5" />
-                    </div>
-                </template>
-
-                <template v-else-if="plant.isWateredToday">
+                <template v-if="plant.isWateredToday">
                     <div class="plant-overlay top-0" />
                     <CheckIcon class="text-white h-8 w-8 m-auto" />
                 </template>
@@ -65,7 +48,7 @@
                 >
                     <ExclamationCircleIcon class="text-white h-6 w-6" />
                 </div>
-            </OnLongPress>
+            </div>
 
             <Transition name="opacity">
                 <PlantCard
@@ -76,9 +59,7 @@
                         width: `${PLANT_CONTAINER_WIDTH_PX}px`
                     }"
                     :plant="plant"
-                    :is-watering="
-                        tooltipIndex === plantIndex && wateringHeightPx > 0 && !plant.isWateredToday
-                    "
+                    :is-watering="tooltipIndex === plantIndex && isWatering"
                     @edit="$emit('edit', plant)"
                     @water="onCompleteWatering(plant)"
                 >
@@ -93,9 +74,8 @@
 import { useDownloadUrlQuery } from '@/composables/useDownloadUrlQuery'
 import { CheckIcon } from '@heroicons/vue/24/outline'
 import { ExclamationCircleIcon, PencilSquareIcon } from '@heroicons/vue/24/solid'
-import { OnLongPress, OnClickOutside } from '@vueuse/components'
+import { OnClickOutside } from '@vueuse/components'
 import { computed, ref, useTemplateRef, type CSSProperties } from 'vue'
-import CustomSpinner from '@/components/CustomSpinner.vue'
 import { markPlantWatered, type Plant } from '@/models/plant'
 import { usePlantsQuery, type PlantWithSetup } from '@/composables/usePlantsQuery'
 import { useToast } from '@/composables/useToast'
@@ -209,36 +189,19 @@ const tooltipYPosition = computed<Array<CSSProperties | undefined>>(() =>
 )
 
 // #region watering
-const selectedPlantId = ref<string>()
-const wateringIntervalId = ref<NodeJS.Timeout>()
-const wateringHeightPx = ref(0)
-
-const resetWatering = (index: number) => {
-    // reset watering
-    clearInterval(wateringIntervalId.value)
-    wateringIntervalId.value = undefined
-    selectedPlantId.value = undefined
-    wateringHeightPx.value = 0
-
-    // trigger tooltip
-    tooltipIndex.value = index
-}
-
-const onStartWatering = (plantId: PlantWithSetup['id']) => {
-    selectedPlantId.value = plantId
-    wateringHeightPx.value = 0
-    wateringIntervalId.value = setInterval(() => {
-        wateringHeightPx.value += 1.25
-    }, 50)
-}
+const isWatering = ref(false)
 
 const onCompleteWatering = async (plant: Plant) => {
+    isWatering.value = true
+
     try {
         await markPlantWatered(plant)
         await invalidatePlantsQuery()
     } catch (error) {
         console.log('Error', error)
         displayGenericError()
+    } finally {
+        isWatering.value = false
     }
 }
 // #endregion
