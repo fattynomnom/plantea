@@ -46,21 +46,21 @@
                     <div v-if="!hasFile" class="rounded-2xl bg-white overflow-hidden py-16 px-7">
                         <div class="flex flex-col items-center space-y-5">
                             <div>
-                                <CustomButton @click="onUploadClicked"> Upload image </CustomButton>
+                                <CustomButton @click="onUploadClicked">Upload image</CustomButton>
                             </div>
                             <p class="text-xs text-gray-500">
                                 Upload a picture of your plant setup to get started.
                             </p>
                         </div>
-
-                        <input
-                            ref="file-input"
-                            type="file"
-                            accept="image/*"
-                            class="hidden"
-                            @change="onImageSelected"
-                        />
                     </div>
+
+                    <input
+                        ref="file-input"
+                        type="file"
+                        accept="image/*"
+                        class="hidden"
+                        @change="onImageSelected"
+                    />
 
                     <PlantSetupDetailsForm
                         :image="displayImage"
