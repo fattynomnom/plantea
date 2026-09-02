@@ -21,10 +21,6 @@
 
     <CustomDrawer v-model:visible="isMenuOpen">
         <ul class="menu-list space-y-4">
-            <li @click="onSignOutClick">
-                <ArrowLeftStartOnRectangleIcon />
-                <span>Sign out</span>
-            </li>
             <li @click="onAddPlantClick">
                 <PlusIcon />
                 <span>Add plant</span>
@@ -36,6 +32,10 @@
             <li @click="onGenPredictionsClick">
                 <SparklesIcon />
                 <span>Generate future predictions</span>
+            </li>
+            <li @click="onSignOutClick">
+                <ArrowLeftStartOnRectangleIcon />
+                <span>Sign out</span>
             </li>
         </ul>
     </CustomDrawer>
