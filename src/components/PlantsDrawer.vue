@@ -255,17 +255,27 @@ const allPlants = computed(
 const hasPlants = computed(() => allPlants.value.length > 0)
 
 const groupedPlants = computed(() => {
-    const map =
-        allPlants.value.reduce<Record<string, Option[]>>((acc, plant) => {
-            const area = plant.area ?? 'No areas specified'
-            const plants = acc[area] ?? []
-            plants.push({ label: plant.name, value: plant.id })
-            acc[area] = plants
+    const singlePlantAreas =
+        plants.value?.singlePlants.reduce<Record<string, Option[]>>((acc, plant) => {
+            const area = plant.area?.trim() ?? 'No area specified'
+            const areaPlants = acc[area] ?? []
+            areaPlants.push({ label: plant.name, value: plant.id })
+            acc[area] = areaPlants
 
             return acc
         }, {}) ?? {}
 
-    return Object.entries(map).map(([area, items]) => ({
+    const allAreasMap =
+        setups.value?.reduce<Record<string, Option[]>>((acc, setup) => {
+            const area = setup.area?.trim() ?? 'No area specified'
+            const areaPlants = acc[area] ?? []
+            const setupPlants = setup.plants.map(({ id, name }) => ({ label: name, value: id }))
+            acc[area] = areaPlants.concat(setupPlants)
+
+            return acc
+        }, singlePlantAreas) ?? {}
+
+    return Object.entries(allAreasMap).map(([area, items]) => ({
         label: area,
         items
     }))
